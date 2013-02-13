@@ -46,10 +46,17 @@ function moveImage() {
     setInterval(animate, 33);
 }
 
+function canvasClick(ev) {
+	var x = ev.clientX - canvas.offsetLeft;
+	var y = ev.clientY - canvas.offsetTop;
+	console.log("Clicked on: " + x + ", " + y);	
+}
+
 function rotateImage() {
 	var singleImage = new Image();
 	singleImage.src = assets[0];
 	canvas = document.getElementById("canvas");
+	canvas.addEventListener('click', canvasClick, false);
 	ctx = canvas.getContext("2d");
 	setInterval(function() {
 		ctx.clearRect(0, 0, canvas.height, canvas.width);
