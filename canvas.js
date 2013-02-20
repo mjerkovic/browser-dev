@@ -59,7 +59,12 @@ function rotateImage() {
 		ctx.save();
 		ctx.translate(100, 100);
 		ctx.rotate(angle);
-		ctx.drawImage(singleImage, 495, 33, 30, 33, -16, -15, 33, 30);
+		ctx.drawImage(singleImage, 495, 34, 30, 31, -16, -15, 30, 31);
+		ctx.restore();		
+		ctx.save();
+		ctx.translate(300, 300);
+		ctx.rotate(angle);
+		ctx.drawImage(singleImage, 495, 34, 30, 31, -16, -15, 30, 31);
 		ctx.restore();		
 		angle = angle + 0.1;
 	}, 100);
