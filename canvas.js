@@ -25,10 +25,6 @@ var ctx;
 var xPos = 0;
 var angle = 0.1;
 var animate = function() {
-	// Draw each frame in order, looping back around to the 
-	// beginning of the animation once you reach the end.
-    // Draw each frame at a position of (0,0) on the canvas.
-	// YOUR CODE HERE
 	ctx.clearRect(0, 0, canvas.height, canvas.width);
 	xPos = (xPos + 2) % 600;
     ctx.drawImage(frames[frame % 18], xPos, 0);
@@ -54,7 +50,7 @@ function canvasClick(ev) {
 
 function rotateImage() {
 	var singleImage = new Image();
-	singleImage.src = assets[0];
+	singleImage.src = 'images/tankbrigade.png';
 	canvas = document.getElementById("canvas");
 	canvas.addEventListener('click', canvasClick, false);
 	ctx = canvas.getContext("2d");
@@ -63,7 +59,7 @@ function rotateImage() {
 		ctx.save();
 		ctx.translate(100, 100);
 		ctx.rotate(angle);
-		ctx.drawImage(singleImage, -41, -41);
+		ctx.drawImage(singleImage, 495, 33, 30, 33, -16, -15, 33, 30);
 		ctx.restore();		
 		angle = angle + 0.1;
 	}, 100);
