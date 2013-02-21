@@ -28,7 +28,3 @@ function Tank(posX, posY, headingX, headingY) {
 	}
 
 }
-
-function Entity() {
-	
-}

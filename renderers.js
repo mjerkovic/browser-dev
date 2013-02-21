@@ -16,8 +16,9 @@ function TankRenderer(tank) {
 	
 }
 
-function GameRenderer(ctx, img, renderers) {
+function GameRenderer(ctx, width, height, img, renderers) {
 	this.render = function() {
+		ctx.clearRect(0, 0, height, width);		
 		renderers.map(function(renderer) {
 			renderer.render(ctx, img);
 		});
