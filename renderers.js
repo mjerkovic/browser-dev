@@ -1,7 +1,7 @@
 function TankRenderer(tank) {
 	
 	var frame = 0;
-	var tankImgPos = [726, 693, 660, 627, 594, 562, 528, 495];
+	var tankImgPos = [726, 693, 660, 627, 594, 561, 528, 495];
 
 	this.render = function(ctx, img) {
 		ctx.save();
