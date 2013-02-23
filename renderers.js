@@ -1,3 +1,23 @@
+function WorldRenderer() {
+
+    this.render = function(ctx) {
+        ctx.save();
+        for (var i = 100; i <= 800; i = i + 100) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, canvas.height);
+            ctx.stroke();
+        }
+        for (var j = 100; j <= 700; j = j + 100) {
+            ctx.beginPath();
+            ctx.moveTo(0, j);
+            ctx.lineTo(canvas.width, j);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+}
+
 function TankRenderer(tank) {
 	
 	var frame = 0;
@@ -31,7 +51,7 @@ function TankRenderer(tank) {
 function GameRenderer(ctx, width, height, img, renderers) {
 	this.render = function() {
 		ctx.clearRect(0, 0, height, width);		
-		renderers.map(function(renderer) {
+		renderers.forEach(function(renderer) {
 			renderer.render(ctx, img);
 		});
 	}
