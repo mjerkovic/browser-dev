@@ -31,18 +31,18 @@ function TankRenderer(tank) {
 		ctx.rotate(tank.angleFrom($V([0, -1, 0])));
 		ctx.drawImage(img, tankImgPos[frame % tankImgPos.length], 34, 30, 31, -16, -15, 30, 31);
         ctx.restore();
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(tank.position().x, tank.position().y);
-        ctx.lineTo(tank.position().x + (tank.heading().x * 100), tank.position().y + (tank.heading().y * 100));
-		ctx.stroke();
-        ctx.restore();
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(tank.position().x, tank.position().y);
-        ctx.lineTo(tank.position().x + -(tank.heading().y * 100), tank.position().y + (tank.heading().x * 100));
-        ctx.stroke();
-        ctx.restore();
+        //ctx.save();
+        //ctx.beginPath();
+        //ctx.moveTo(tank.position().x, tank.position().y);
+        //ctx.lineTo(tank.position().x + (tank.heading().x * 100), tank.position().y + (tank.heading().y * 100));
+		//ctx.stroke();
+        //ctx.restore();
+        //ctx.save();
+        //ctx.beginPath();
+        //ctx.moveTo(tank.position().x, tank.position().y);
+        //ctx.lineTo(tank.position().x + -(tank.heading().y * 100), tank.position().y + (tank.heading().x * 100));
+        //ctx.stroke();
+        //ctx.restore();
 		frame = (frame == tankImgPos.length - 1) ? 0 : frame + 1;
 	}
 	

@@ -7,11 +7,12 @@ Vector.prototype.Y = function() {
 
 function Tank(spec) {
 	
-	var position = $V([spec.posX, spec.posY, 0]);
+	var pos = $V([spec.posX, spec.posY, 0]);
 	var head = $V([spec.headingX, spec.headingY, 0]);
+    var steering = new Steering();
 	
 	this.position = function() {
-		return { x: position.X(), y: position.Y() };
+		return { x: pos.X(), y: pos.Y() };
 	},
 
 	this.heading = function() {
@@ -24,18 +25,32 @@ function Tank(spec) {
 	},
 
 	this.move = function() {
-		position = position.setElements([position.X() + 2, position.Y(), 0]);
+		pos = pos.setElements([pos.X() + 2, pos.Y()]);
 	},
 
     this.pointTo = function(h) {
         var target = $V([h.x, h.y, 0]);
-        var result = target.subtract(position);
+        var result = target.subtract(pos);
         console.log(
-            " Position ", { "x": position.X(), "y": position.Y() },
+            " Position ", { "x": pos.X(), "y": pos.Y() },
             " Clicked ", { "x": target.X(), "y": target.Y() },
             " Target ", { "x": result.X(), "y": result.Y() }
         );
         head = result.toUnitVector();
+    },
+
+    this.update = function() {
+        var desiredVelocity = steering.calculate(this);
+        head = desiredVelocity.toUnitVector();
+        pos = pos.add(desiredVelocity);
+    },
+
+    this.seekTo = function(pos) {
+        steering.seekTo(pos);
+    },
+
+    this.arriveAt = function(pos) {
+        steering.arriveAt(pos);
     }
 
 }
