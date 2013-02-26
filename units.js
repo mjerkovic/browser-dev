@@ -57,20 +57,23 @@ function Tank(spec) {
 
     this.update = function() {
         var steeringForce = steering.calculate(this);
+        steeringForce = restrictTurnRate(steeringForce);
         var acceleration = steeringForce.dividedBy(mass);
         veloc = veloc.add(acceleration).truncate(maxSpeed);
-/*
-        var desiredVelociyNorm = steeringForce.toUnitVector();
-        var dot = head.dot(desiredVelociyNorm);
-        if (dot < 0) {
-            return;
-        } else if (dot > 0.35) {
-            steeringForce = steeringForce.multiply(0.35);
-        }
-*/
         pos = pos.add(veloc);
         if (steeringForce.modulus() > 0.000001) {
-            head = steeringForce.toUnitVector();
+            head = veloc.toUnitVector();
+        }
+
+        function restrictTurnRate(steeringForce) {
+            var angle = head.dot(steeringForce.toUnitVector());
+            if (angle < 0) {
+                return Vector.Zero(3);
+            } else if (angle > 0.47) {
+                return steeringForce.multiply(0.03);
+            } else {
+                return steeringForce;
+            }
         }
     },
 
