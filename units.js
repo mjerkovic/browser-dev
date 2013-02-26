@@ -6,12 +6,17 @@ Vector.prototype.Y = function() {
 }
 
 function Tank(spec) {
-	
+
+    var maxSpeed = 3;
 	var pos = $V([spec.posX, spec.posY, 0]);
 	var head = $V([spec.headingX, spec.headingY, 0]);
     var veloc = $V([0, 0, 0]);
     var steering = new Steering();
-	
+
+    this.maxSpeed = function() {
+        return maxSpeed;
+    },
+
 	this.position = function() {
 		return pos.dup();
 	},
@@ -48,8 +53,11 @@ function Tank(spec) {
         } else if (dot > 0.35) {
             desiredVelocity = desiredVelocity.multiply(0.35);
         }
-        head = desiredVelocity.toUnitVector();
-        pos = pos.add(desiredVelocity);
+        veloc = desiredVelocity;
+        pos = pos.add(veloc);
+        if (desiredVelocity.modulus() > 0.000001) {
+            head = desiredVelocity.toUnitVector();
+        }
     },
 
     this.seekTo = function(pos) {

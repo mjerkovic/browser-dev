@@ -16,9 +16,7 @@ function Steering() {
         return Vector.Zero(3);
 
         function seek() {
-            var desiredVelocity = seekPos.subtract($V([entity.position().X(), entity.position().Y(), 0])).toUnitVector().multiply(3);
-            console.log("Seeking to " + desiredVelocity.X() + ", " + desiredVelocity.Y());
-            return desiredVelocity;
+            return seekPos.subtract($V([entity.position().X(), entity.position().Y(), 0])).toUnitVector().multiply(entity.maxSpeed());
         }
 
         function arrive() {
