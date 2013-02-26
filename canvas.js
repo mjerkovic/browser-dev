@@ -15,7 +15,7 @@ function startGame() {
 	var entities = [tank1];
 	var renderer1 = new TankRenderer(tank1);
     var worldRenderer = new WorldRenderer();
-	var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, singleImage, [renderer1]);
+	var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, singleImage, [worldRenderer, renderer1]);
 	setInterval(function() {
 		update(entities);
 		render(gameRenderer);

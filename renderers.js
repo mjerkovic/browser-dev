@@ -1,18 +1,11 @@
 function WorldRenderer() {
 
-    this.render = function(ctx) {
+    this.render = function(ctx, img) {
         ctx.save();
-        for (var i = 100; i <= 800; i = i + 100) {
-            ctx.beginPath();
-            ctx.moveTo(i, 0);
-            ctx.lineTo(i, canvas.height);
-            ctx.stroke();
-        }
-        for (var j = 100; j <= 700; j = j + 100) {
-            ctx.beginPath();
-            ctx.moveTo(0, j);
-            ctx.lineTo(canvas.width, j);
-            ctx.stroke();
+        for (var x=0; x < 26; x = x + 1) {
+            for (var y=0; y < 23; y = y + 1) {
+                ctx.drawImage(img, 165, 132, 31, 31, x*31, y*31, 31, 31);        
+            }
         }
         ctx.restore();
     }

@@ -28,7 +28,7 @@ function Steering() {
                 var speed = dist / 60; // decel=3 * tweaker=20
                 //speed = Math.min(speed, entity.getMaxSpeed());
                 var desiredVelocity = toTarget.multiply(speed / dist);
-                return desiredVelocity.subtract(entity.velocity());
+                return desiredVelocity.subtract($V([entity.heading().x, entity.heading().y, 0]));
             }
             return Vector.Zero(3);
 
