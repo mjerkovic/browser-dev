@@ -9,15 +9,20 @@ function Tank(spec) {
 	
 	var pos = $V([spec.posX, spec.posY, 0]);
 	var head = $V([spec.headingX, spec.headingY, 0]);
+    var veloc = $V([0, 0, 0]);
     var steering = new Steering();
 	
 	this.position = function() {
-		return { x: pos.X(), y: pos.Y() };
+		return pos.dup();
 	},
 
 	this.heading = function() {
-		return { x: head.X(), y: head.Y() };
+		return head.dup();
 	},
+
+    this.velocity = function() {
+        return veloc.dup();
+    },
 
 	this.angleFrom = function(vector) {
 		var result = head.angleFrom(vector);
@@ -31,16 +36,18 @@ function Tank(spec) {
     this.pointTo = function(h) {
         var target = $V([h.x, h.y, 0]);
         var result = target.subtract(pos);
-        console.log(
-            " Position ", { "x": pos.X(), "y": pos.Y() },
-            " Clicked ", { "x": target.X(), "y": target.Y() },
-            " Target ", { "x": result.X(), "y": result.Y() }
-        );
         head = result.toUnitVector();
     },
 
     this.update = function() {
         var desiredVelocity = steering.calculate(this);
+        var desiredVelociyNorm = desiredVelocity.toUnitVector();
+        var dot = head.dot(desiredVelociyNorm);
+        if (dot < 0) {
+            return;
+        } else if (dot > 0.35) {
+            desiredVelocity = desiredVelocity.multiply(0.35);
+        }
         head = desiredVelocity.toUnitVector();
         pos = pos.add(desiredVelocity);
     },
