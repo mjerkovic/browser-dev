@@ -5,9 +5,20 @@ Vector.prototype.Y = function() {
 	return this.e(2);
 }
 
+Vector.prototype.dividedBy = function(n) {
+    return this.map(function(el, index) {
+        return el / n;
+    });
+}
+
+Vector.prototype.truncate = function(n) {
+    return this.modulus() > n ? this.toUnitVector().multiply(n) : this;
+}
+
 function Tank(spec) {
 
     var maxSpeed = 3;
+    var mass = 1;
 	var pos = $V([spec.posX, spec.posY, 0]);
 	var head = $V([spec.headingX, spec.headingY, 0]);
     var veloc = $V([0, 0, 0]);
@@ -45,18 +56,21 @@ function Tank(spec) {
     },
 
     this.update = function() {
-        var desiredVelocity = steering.calculate(this);
-        var desiredVelociyNorm = desiredVelocity.toUnitVector();
+        var steeringForce = steering.calculate(this);
+        var acceleration = steeringForce.dividedBy(mass);
+        veloc = veloc.add(acceleration).truncate(maxSpeed);
+/*
+        var desiredVelociyNorm = steeringForce.toUnitVector();
         var dot = head.dot(desiredVelociyNorm);
         if (dot < 0) {
             return;
         } else if (dot > 0.35) {
-            desiredVelocity = desiredVelocity.multiply(0.35);
+            steeringForce = steeringForce.multiply(0.35);
         }
-        veloc = desiredVelocity;
+*/
         pos = pos.add(veloc);
-        if (desiredVelocity.modulus() > 0.000001) {
-            head = desiredVelocity.toUnitVector();
+        if (steeringForce.modulus() > 0.000001) {
+            head = steeringForce.toUnitVector();
         }
     },
 
