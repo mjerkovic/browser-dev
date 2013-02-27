@@ -9,14 +9,11 @@ function startGame() {
         switch (ev.which) {
             case 1: tank1.seekTo(pos);
                 break;
-            case 3: tank1.aimAt(pos);
-                break;
         }
         return false;
     }, false);
-    canvas.addEventListener('contextmenu', function(ev) {
-        ev.preventDefault();
-        return false;
+    canvas.addEventListener('mousemove', function(ev) {
+        tank1.aimAt(posFromMouseEvent(ev));
     }, false);
     var ctx = canvas.getContext("2d");
 	var entities = [tank1];
