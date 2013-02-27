@@ -18,6 +18,7 @@ Vector.prototype.truncate = function(n) {
 function Tank(spec) {
 
     var maxSpeed = 3;
+    var maxTurnRate = 0.47
     var mass = 1;
 	var pos = $V([spec.posX, spec.posY, 0]);
 	var head = $V([spec.headingX, spec.headingY, 0]);
@@ -66,11 +67,11 @@ function Tank(spec) {
         }
 
         function restrictTurnRate(steeringForce) {
-            var angle = head.dot(steeringForce.toUnitVector());
+            var angle = head.dot(head.add(steeringForce).toUnitVector());
             if (angle < 0) {
                 return Vector.Zero(3);
-            } else if (angle > 0.47) {
-                return steeringForce.multiply(0.03);
+            } else if (angle > maxTurnRate) {
+                return steeringForce.multiply(maxTurnRate);
             } else {
                 return steeringForce;
             }
