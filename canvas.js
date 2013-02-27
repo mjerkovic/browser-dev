@@ -3,14 +3,20 @@ function startGame() {
 	singleImage.src = 'images/tankbrigade.png';
     var canvas = document.getElementById("canvas");
     var tank1 = new Tank({posX: 400, posY: 400, headingX: 1, headingY: 0});
-    canvas.addEventListener('click', function(ev) {
+    canvas.addEventListener('mousedown', function(ev) {
         var pos = posFromMouseEvent(ev);
-        //tank1.pointTo(pos);
-        tank1.seekTo(pos);
-        //tank1.arriveAt(pos);
+        ev.preventDefault();
+        switch (ev.which) {
+            case 1: tank1.seekTo(pos);
+                break;
+            case 3: tank1.aimAt(pos);
+                break;
+        }
+        return false;
     }, false);
-    canvas.addEventListener('mousemove', function(ev) {
-        tank1.aimAt(posFromMouseEvent(ev));
+    canvas.addEventListener('contextmenu', function(ev) {
+        ev.preventDefault();
+        return false;
     }, false);
     var ctx = canvas.getContext("2d");
 	var entities = [tank1];
