@@ -11,6 +11,15 @@ function WorldRenderer() {
     }
 
 }
+
+function Renderable() {
+    angleFrom = function(vector) {
+        var result = vector.angleFrom($V([0, -1, 0]));
+        return (vector.X() < 0) ? -result : result;
+
+    }
+}
+
 function TankRenderer(tank) {
 	
 	var frame = 0;
@@ -21,13 +30,26 @@ function TankRenderer(tank) {
 		//ctx.translate(0, canvas.height);
 		//ctx.scale(1.0, -1.0);
 		ctx.translate(tank.position().X(), tank.position().Y());
-		ctx.rotate(tank.angleFrom($V([0, -1, 0])));
+		ctx.rotate(angleFrom(tank.heading()));
 		ctx.drawImage(img, tankImgPos[frame % tankImgPos.length], 34, 30, 31, -16, -15, 30, 31);
         ctx.restore();
 		frame = (frame == tankImgPos.length - 1) ? 0 : frame + 1;
+        ctx.save();
+        ctx.beginPath();
+        ctx.strokeStyle = "#00EE00";
+        var startX = tank.position().X() + (tank.aim().X() * 50);
+        var startY = tank.position().Y() + (tank.aim().Y() * 50);
+        ctx.moveTo(startX - 5, startY);
+        ctx.lineTo(startX + 5, startY);
+        ctx.moveTo(startX, startY - 5);
+        ctx.lineTo(startX, startY + 5);
+        ctx.stroke();
+        ctx.restore();
 	}
 	
 }
+
+TankRenderer.prototype = new Renderable();
 
 function ExplosionRenderer() {
 

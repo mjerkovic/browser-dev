@@ -4,12 +4,13 @@ function startGame() {
     var canvas = document.getElementById("canvas");
     var tank1 = new Tank({posX: 400, posY: 400, headingX: 1, headingY: 0});
     canvas.addEventListener('click', function(ev) {
-        var x = ev.pageX - canvas.offsetLeft;
-        var y = ev.pageY - canvas.offsetTop;
-        var pos = { "x": x, "y": y };
+        var pos = posFromMouseEvent(ev);
         //tank1.pointTo(pos);
         tank1.seekTo(pos);
         //tank1.arriveAt(pos);
+    }, false);
+    canvas.addEventListener('mousemove', function(ev) {
+        tank1.aimAt(posFromMouseEvent(ev));
     }, false);
     var ctx = canvas.getContext("2d");
 	var entities = [tank1];
@@ -20,6 +21,12 @@ function startGame() {
 		update(entities);
 		render(gameRenderer);
 	}, 100);
+}
+
+function posFromMouseEvent(ev) {
+    var x = ev.pageX - canvas.offsetLeft;
+    var y = ev.pageY - canvas.offsetTop;
+    return { "x": x, "y": y };
 }
 
 function update(entities) {
