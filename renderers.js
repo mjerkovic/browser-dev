@@ -72,12 +72,15 @@ function MissileRenderer(missiles) {
     this.render = function(ctx) {
         missileArray.forEach(function(missile) {
             ctx.save();
-            ctx.translate(missile.position().X(), missile.position().Y());
-            ctx.rotate(angleFrom(missile.heading()));
+            //ctx.translate(missile.position().X(), missile.position().Y());
+            //ctx.rotate(angleFrom(missile.heading()));
             ctx.beginPath();
-            ctx.lineTo(10, 10);
+            ctx.moveTo(missile.position().X(), missile.position().Y())
+            ctx.lineTo(missile.position().X() + (missile.heading().X() * 10), missile.position().Y() + (missile.heading().Y() * 10));
             ctx.stroke();
             ctx.restore();
+            xstat.innerHTML = missile.position().X();
+            ystat.innerHTML = missile.position().Y();
         });
 
     }

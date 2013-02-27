@@ -11,6 +11,10 @@ Vector.prototype.dividedBy = function(n) {
     });
 }
 
+Vector.prototype.length = function() {
+    return this.modulus()
+}
+
 Vector.prototype.truncate = function(n) {
     return this.modulus() > n ? this.toUnitVector().multiply(n) : this;
 }
@@ -98,16 +102,19 @@ function Tank(spec) {
     this.fire = function() {
         return {
             position: { x: pos.X() + (aimVector.X() * 20), y: pos.Y() + (aimVector.Y() * 20) },
-            heading: { x: aimVector.X(), y: aimVector.Y() }
+            heading: { x: aimVector.X(), y: aimVector.Y() },
+            range: 200
         };
     }
 
 }
 
 function Missile(spec) {
-    var pos = $V([spec.position.x, spec.position.y, 0]);
+    var startingPos;
+    var pos = startingPos = $V([spec.position.x, spec.position.y, 0]);
     var head = $V([spec.heading.x, spec.heading.y, 0]);
     var veloc = 10;
+    var range = spec.range;
 
     this.position = function() {
         return pos.dup();
@@ -118,6 +125,9 @@ function Missile(spec) {
     }
 
     this.update = function() {
-        pos = pos.add(head.multiply(veloc));
+        if (pos.subtract(startingPos).modulus() < range) {
+            pos = pos.add(head.multiply(veloc));
+            console.log(startingPos, pos)
+        }
     }
 }
