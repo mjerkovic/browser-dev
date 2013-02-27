@@ -65,6 +65,27 @@ function ExplosionRenderer() {
     }
 }
 
+function MissileRenderer(missiles) {
+
+    var missileArray = missiles;
+
+    this.render = function(ctx) {
+        missileArray.forEach(function(missile) {
+            ctx.save();
+            ctx.translate(missile.position().X(), missile.position().Y());
+            ctx.rotate(angleFrom(missile.heading()));
+            ctx.beginPath();
+            ctx.lineTo(10, 10);
+            ctx.stroke();
+            ctx.restore();
+        });
+
+    }
+
+}
+
+MissileRenderer.prototype = new Renderable();
+
 function GameRenderer(ctx, width, height, img, renderers) {
 	this.render = function() {
 		ctx.clearRect(0, 0, height, width);		

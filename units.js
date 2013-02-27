@@ -93,6 +93,31 @@ function Tank(spec) {
 
     this.aimAt = function(mousePos) {
         aimVector = $V([mousePos.x, mousePos.y, 0]).subtract(pos).toUnitVector();
+    },
+
+    this.fire = function() {
+        return {
+            position: { x: pos.X() + (aimVector.X() * 20), y: pos.Y() + (aimVector.Y() * 20) },
+            heading: { x: aimVector.X(), y: aimVector.Y() }
+        };
     }
 
+}
+
+function Missile(spec) {
+    var pos = $V([spec.position.x, spec.position.y, 0]);
+    var head = $V([spec.heading.x, spec.heading.y, 0]);
+    var veloc = 10;
+
+    this.position = function() {
+        return pos.dup();
+    }
+
+    this.heading = function() {
+        return head.dup();
+    }
+
+    this.update = function() {
+        pos = pos.add(head.multiply(veloc));
+    }
 }
