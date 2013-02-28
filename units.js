@@ -109,7 +109,7 @@ function Tank(spec) {
 
 }
 
-function Missile(spec) {
+function Missile(spec, callback) {
     var startingPos;
     var pos = startingPos = $V([spec.position.x, spec.position.y, 0]);
     var head = $V([spec.heading.x, spec.heading.y, 0]);
@@ -127,7 +127,28 @@ function Missile(spec) {
     this.update = function() {
         if (pos.subtract(startingPos).modulus() < range) {
             pos = pos.add(head.multiply(veloc));
-            console.log(startingPos, pos)
+            //console.log(startingPos, pos)
+        } else {
+            callback(this, { x: pos.X(), y: pos.Y() });
         }
     }
+}
+
+function Explosion(pos, endFunction) {
+    this.x = pos.x;
+    this.y = pos.y;
+    var frame = 0;
+
+    this.currentFrame = function() {
+        frame++;
+        console.log(frame);
+        return frame;
+    },
+
+    this.finish = function(frameCount) {
+        if (frame == frameCount - 1) {
+            endFunction(this);
+        }
+    }
+
 }

@@ -5,13 +5,20 @@ function startGame() {
     var tank1 = new Tank({posX: 400, posY: 400, headingX: 1, headingY: 0});
     var missiles = [];
     var entities = [tank1];
+    var explosions = [];
     canvas.addEventListener('mousedown', function(ev) {
         var pos = posFromMouseEvent(ev);
         ev.preventDefault();
         switch (ev.which) {
             case 1: tank1.seekTo(pos);
                 break;
-            case 3: var missile = new Missile(tank1.fire());
+            case 3: var missile = new Missile(tank1.fire(), function(miss, point) {
+                        entities.splice(entities.indexOf(miss), 1);
+                        missiles.splice(missiles.indexOf(miss), 1);
+                        explosions.push(new Explosion(point, function(exp) {
+                        explosions.splice(explosions.indexOf(exp), 1);
+                    }));
+                });
                 missiles.push(missile);
                 entities.push(missile);
                 break;
@@ -28,8 +35,9 @@ function startGame() {
 	var renderer1 = new TankRenderer(tank1);
     var worldRenderer = new WorldRenderer();
     var missileRenderer = new MissileRenderer(missiles);
+    var explosionRenderer = new ExplosionRenderer(explosions);
 	var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, singleImage,
-        [worldRenderer, renderer1, missileRenderer]);
+        [worldRenderer, renderer1, explosionRenderer, missileRenderer]);
 	setInterval(function() {
 		update(entities);
 		render(gameRenderer);

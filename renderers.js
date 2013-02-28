@@ -51,17 +51,19 @@ function TankRenderer(tank) {
 
 TankRenderer.prototype = new Renderable();
 
-function ExplosionRenderer() {
+function ExplosionRenderer(explosions) {
 
-    var frame = 0;
     var frames = [{"x": 33, "y": 31}, {"x": 66, "y": 31}, {"x": 99, "y": 30}];
 
     this.render = function(ctx, img) {
-        ctx.save();
-        ctx.translate(400, 400);
-        ctx.drawImage(img, frames[frame % frames.length].x, 33, frames[frame % frames.length].y, 33, -20, -20, 40, 40);
-        ctx.restore();
-        frame = (frame == frames.length - 1) ? 0 : frame + 1;
+        explosions.forEach(function(explosion) {
+            var frame = explosion.currentFrame();
+            ctx.save();
+            ctx.translate(explosion.x, explosion.y);
+            ctx.drawImage(img, frames[frame].x, 33, frames[frame].y, 32, -16, -16, 33, 32);
+            ctx.restore();
+            explosion.finish(frames.length);
+        });
     }
 }
 
@@ -69,7 +71,7 @@ function MissileRenderer(missiles) {
 
     var missileArray = missiles;
 
-    this.render = function(ctx) {
+    this.render = function(ctx, img) {
         missileArray.forEach(function(missile) {
             ctx.save();
             //ctx.translate(missile.position().X(), missile.position().Y());
