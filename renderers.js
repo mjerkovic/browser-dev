@@ -69,20 +69,13 @@ function ExplosionRenderer(explosions) {
 
 function MissileRenderer(missiles) {
 
-    var missileArray = missiles;
-
     this.render = function(ctx, img) {
-        missileArray.forEach(function(missile) {
+        missiles.forEach(function(missile) {
             ctx.save();
-            //ctx.translate(missile.position().X(), missile.position().Y());
-            //ctx.rotate(angleFrom(missile.heading()));
-            ctx.beginPath();
-            ctx.moveTo(missile.position().X(), missile.position().Y())
-            ctx.lineTo(missile.position().X() + (missile.heading().X() * 10), missile.position().Y() + (missile.heading().Y() * 10));
-            ctx.stroke();
+            ctx.translate(missile.position().X(), missile.position().Y());
+            ctx.rotate(angleFrom(missile.heading()));
+            ctx.drawImage(img, 132, 33, 30, 30, -15, -15, 30, 30);
             ctx.restore();
-            xstat.innerHTML = missile.position().X();
-            ystat.innerHTML = missile.position().Y();
         });
 
     }
