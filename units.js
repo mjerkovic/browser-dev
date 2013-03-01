@@ -30,6 +30,7 @@ function Tank(spec) {
     var veloc = $V([0, 0, 0]);
     var angle = spec.angle || 45;
     var steering = new Steering();
+    var health = 1;
 
     this.maxSpeed = function() {
         return maxSpeed;
@@ -59,6 +60,10 @@ function Tank(spec) {
     this.aim = function() {
         return aimVector.dup();
     },
+
+    this.power = function() {
+        return health;
+    }
 
     this.move = function() {
         pos = pos.setElements([pos.X() + 2, pos.Y()]);
@@ -111,6 +116,11 @@ function Tank(spec) {
             range: 200,
             firingAngle: angle
         };
+    },
+
+    this.hit = function() {
+        health = health - 0.25;
+        console.log(health);
     }
 
 }

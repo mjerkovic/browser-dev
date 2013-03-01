@@ -28,8 +28,17 @@ function World(ctx) {
             explosions.push(new Explosion(point, function(exp) {
                 explosions.splice(explosions.indexOf(exp), 1);
             }));
+            explosion(point);
         });
         missiles.push(missile);
+
+        function explosion(point) {
+            tanks.forEach(function(tank) {
+                if (tank.position().distanceFrom(point) < 100) {
+                    tank.hit();
+                }
+            });
+        }
     },
 
     this.aimAt = function(pos) {

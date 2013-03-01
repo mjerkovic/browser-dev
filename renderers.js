@@ -39,6 +39,25 @@ function TankRenderer(tank) {
 		ctx.drawImage(img, tankImgPos[frame % tankImgPos.length], 34, 30, 31, -16, -15, 30, 31);
         ctx.restore();
 		frame = (frame == tankImgPos.length - 1) ? 0 : frame + 1;
+
+        var fillColour;
+        if (tank.power() <= 0.33) {
+            fillColour = "FF0000";
+        } else if (tank.power() <= 0.66) {
+            fillColour = "FFFF00";
+        } else {
+            fillColour = "00EE00";
+        }
+        ctx.save();
+        ctx.fillStyle = "000000";
+        ctx.fillRect(tank.position().X() - 15, tank.position().Y() - 30, 30, 10);
+        ctx.restore();
+
+        ctx.save();
+        ctx.fillStyle = fillColour;
+        ctx.fillRect(tank.position().X() - 14, tank.position().Y() - 29, 28 * tank.power(), 8);
+        ctx.restore();
+
         ctx.save();
         ctx.beginPath();
         ctx.strokeStyle = "#00EE00";
