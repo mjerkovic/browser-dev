@@ -3,12 +3,12 @@ function World(ctx) {
     var singleImage = new Image();
     singleImage.src = 'images/tankbrigade.png';
     var missiles = [];
-    var entities = [];
+    var tanks = [];
     var explosions = [];
     var playerTank = new Tank({posX: 400, posY: 400, headingX: 1, headingY: 0});
-    entities.push(playerTank);
+    tanks.push(playerTank);
     var playerTankRenderer = new TankRenderer(playerTank);
-    var worldRenderer = new WorldRenderer();
+    var worldRenderer = new WorldRenderer(playerTank);
     var missileRenderer = new MissileRenderer(missiles);
     var explosionRenderer = new ExplosionRenderer(explosions);
     var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, singleImage,
@@ -24,14 +24,12 @@ function World(ctx) {
 
     this.fireMissile = function() {
         var missile = new Missile(playerTank.fire(), function(miss, point) {
-            entities.splice(entities.indexOf(miss), 1);
             missiles.splice(missiles.indexOf(miss), 1);
             explosions.push(new Explosion(point, function(exp) {
                 explosions.splice(explosions.indexOf(exp), 1);
             }));
         });
         missiles.push(missile);
-        entities.push(missile);
     },
 
     this.aimAt = function(pos) {
@@ -39,7 +37,10 @@ function World(ctx) {
     },
 
     this.update = function() {
-        entities.forEach(function(entity) {
+        tanks.forEach(function(entity) {
+            entity.update();
+        });
+        missiles.forEach(function(entity) {
             entity.update();
         });
     },

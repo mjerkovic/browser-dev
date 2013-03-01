@@ -1,4 +1,4 @@
-function WorldRenderer() {
+function WorldRenderer(playerTank) {
 
     this.render = function(ctx, img) {
         ctx.save();
@@ -7,6 +7,11 @@ function WorldRenderer() {
                 ctx.drawImage(img, 165, 132, 31, 31, x*31, y*31, 31, 31);
             }
         }
+        ctx.restore();
+        ctx.save();
+        ctx.fillStyle = "white";
+        ctx.font = "bold 12px Arial";
+        ctx.fillText(playerTank.firingAngle(), 750, 15);
         ctx.restore();
     }
 
