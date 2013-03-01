@@ -69,12 +69,17 @@ function ExplosionRenderer(explosions) {
 
 function MissileRenderer(missiles) {
 
+    var imgX = imgY = 30;
+
     this.render = function(ctx, img) {
         missiles.forEach(function(missile) {
             ctx.save();
             ctx.translate(missile.position().X(), missile.position().Y());
             ctx.rotate(angleFrom(missile.heading()));
-            ctx.drawImage(img, 132, 33, 30, 30, -15, -15, 30, 30);
+            var scale = Math.max(1, (missile.currentHeight() / missile.maxHeight() * 4));
+            var scaledImgX = imgX * scale;
+            var scaledImgY = imgY * scale;
+            ctx.drawImage(img, 132, 33, 30, 30, -scaledImgX / 2, -scaledImgY / 2, scaledImgX, scaledImgY);
             ctx.restore();
         });
 

@@ -108,23 +108,38 @@ function Missile(spec, callback) {
     var startingPos;
     var pos = startingPos = $V([spec.position.x, spec.position.y, 0]);
     var head = $V([spec.heading.x, spec.heading.y, 0]);
-    var veloc = 10;
+    var veloc = 20;
     var range = spec.range;
+    var angle = (Math.PI / 180) * 45;
+    var xVelocity = veloc * Math.cos(angle);
+    var yVelocity = veloc * Math.sin(angle);
+    var time = 0;
+    var initialHeight = currHeight = 2;
+    var maxH = (Math.pow(yVelocity, 2) + initialHeight) / 19.6;
+
+    this.currentHeight = function() {
+        return currHeight;
+    },
+
+    this.maxHeight = function() {
+        return maxH;
+    },
 
     this.position = function() {
         return pos.dup();
-    }
+    },
 
     this.heading = function() {
         return head.dup();
-    }
+    },
 
     this.update = function() {
-        if (pos.subtract(startingPos).modulus() < range) {
-            pos = pos.add(head.multiply(veloc));
-            //console.log(startingPos, pos)
-        } else {
+        time = time + 0.1;
+        currHeight = yVelocity * time + 0.5 * -9.81 * time * time;
+        if (currHeight < 0) {
             callback(this, { x: pos.X(), y: pos.Y() });
+        } else {
+            pos = pos.add(head.multiply(xVelocity));
         }
     }
 }
@@ -136,7 +151,6 @@ function Explosion(pos, endFunction) {
 
     this.currentFrame = function() {
         frame++;
-        console.log(frame);
         return frame;
     },
 
