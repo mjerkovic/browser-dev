@@ -34,30 +34,25 @@ function Tank(spec) {
         return maxSpeed;
     },
 
-        this.position = function() {
-            return pos.dup();
-        },
+    this.position = function() {
+        return pos.dup();
+    },
 
-        this.heading = function() {
-            return head.dup();
-        },
+    this.heading = function() {
+        return head.dup();
+    },
 
-        this.velocity = function() {
-            return veloc.dup();
-        },
+    this.velocity = function() {
+        return veloc.dup();
+    },
 
-        this.aim = function() {
-            return aimVector.dup();
-        },
+    this.aim = function() {
+        return aimVector.dup();
+    },
 
-        //this.angleFrom = function(vector) {
-        //    var result = head.angleFrom(vector);
-        //    return (head.X() < 0) ? -result : result;
-        //},
-
-        this.move = function() {
-            pos = pos.setElements([pos.X() + 2, pos.Y()]);
-        },
+    this.move = function() {
+        pos = pos.setElements([pos.X() + 2, pos.Y()]);
+    },
 
     this.pointTo = function(h) {
         var target = $V([h.x, h.y, 0]);
