@@ -19,6 +19,11 @@ function startGame() {
     canvas.addEventListener('contextmenu', function(ev) {
         ev.preventDefault();
     }, false);
+    canvas.addEventListener('mousewheel', function(ev) {
+        ev.preventDefault();
+        console.log(ev.wheelDelta, (ev.wheelDelta / 120) * 5);
+        world.adjustFiringAngle((ev.wheelDelta / 120) * 5);
+    }, false) ;
 	setInterval(function() {
 		world.update();
 		world.render();

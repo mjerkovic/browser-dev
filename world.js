@@ -18,6 +18,10 @@ function World(ctx) {
         playerTank.seekTo(pos);
     },
 
+    this.adjustFiringAngle = function(angleDelta) {
+        playerTank.angleTo(angleDelta);
+    }
+
     this.fireMissile = function() {
         var missile = new Missile(playerTank.fire(), function(miss, point) {
             entities.splice(entities.indexOf(miss), 1);

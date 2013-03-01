@@ -28,6 +28,7 @@ function Tank(spec) {
 	var head = $V([spec.headingX, spec.headingY, 0]);
     var aimVector = $V([spec.headingX, spec.headingY, 0]);
     var veloc = $V([0, 0, 0]);
+    var angle = spec.angle || 45;
     var steering = new Steering();
 
     this.maxSpeed = function() {
@@ -45,6 +46,15 @@ function Tank(spec) {
     this.velocity = function() {
         return veloc.dup();
     },
+
+    this.firingAngle = function() {
+        return angle;
+    },
+
+    this.angleTo = function(angleInDegrees) {
+        angle = Math.min(Math.max(0, angle + angleInDegrees), 90);
+        xstat.innerHTML = angle;
+    }
 
     this.aim = function() {
         return aimVector.dup();
@@ -98,7 +108,8 @@ function Tank(spec) {
         return {
             position: { x: pos.X() + (aimVector.X() * 20), y: pos.Y() + (aimVector.Y() * 20) },
             heading: { x: aimVector.X(), y: aimVector.Y() },
-            range: 200
+            range: 200,
+            firingAngle: angle
         };
     }
 
@@ -110,7 +121,7 @@ function Missile(spec, callback) {
     var head = $V([spec.heading.x, spec.heading.y, 0]);
     var veloc = 20;
     var range = spec.range;
-    var angle = (Math.PI / 180) * 45;
+    var angle = (Math.PI / 180) * spec.firingAngle;
     var xVelocity = veloc * Math.cos(angle);
     var yVelocity = veloc * Math.sin(angle);
     var time = 0;
