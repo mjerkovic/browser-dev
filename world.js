@@ -5,10 +5,11 @@ function World(ctx) {
     var missiles = [];
     var tanks = [];
     var explosions = [];
+    var craters = [];
     var playerTank = new Tank({posX: 400, posY: 400, headingX: 1, headingY: 0});
     tanks.push(playerTank);
     var playerTankRenderer = new TankRenderer(playerTank);
-    var worldRenderer = new WorldRenderer(playerTank);
+    var worldRenderer = new WorldRenderer(playerTank, craters);
     var missileRenderer = new MissileRenderer(missiles);
     var explosionRenderer = new ExplosionRenderer(explosions);
     var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, singleImage,
@@ -34,6 +35,7 @@ function World(ctx) {
         missiles.push(missile);
 
         function explosion(point) {
+            craters.push(point);
             tanks.forEach(function(tank) {
                 if (tank.position().distanceFrom(point) < 100) {
                     tank.hit();

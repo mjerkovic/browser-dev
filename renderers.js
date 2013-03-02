@@ -1,4 +1,4 @@
-function WorldRenderer(playerTank) {
+function WorldRenderer(playerTank, craters) {
 
     this.render = function(ctx, img) {
 
@@ -9,6 +9,14 @@ function WorldRenderer(playerTank) {
                     ctx.drawImage(img, 165, 132, 31, 31, x*31, y*31, 31, 31);
                 }
             }
+            ctx.restore();
+        }
+
+        function drawCraters() {
+            ctx.save();
+            craters.forEach(function(crater) {
+                ctx.drawImage(img, 264, 165, 31, 31, crater.x - 15, crater.y - 15, 31, 31);
+            });
             ctx.restore();
         }
 
@@ -36,6 +44,7 @@ function WorldRenderer(playerTank) {
         }
 
         drawBackground();
+        drawCraters();
         sidePanel();
     }
 
