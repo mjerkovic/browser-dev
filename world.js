@@ -6,7 +6,7 @@ function World(ctx) {
     var tanks = [];
     var explosions = [];
     var craters = [];
-    var playerTank = new Tank({posX: 400, posY: 400, headingX: 1, headingY: 0});
+    var playerTank = new Tank({posX: 400, posY: 400, headingX: 1, headingY: 0, missiles: 3});
     tanks.push(playerTank);
     var playerTankRenderer = new TankRenderer(playerTank);
     var worldRenderer = new WorldRenderer(playerTank, craters);
@@ -25,14 +25,16 @@ function World(ctx) {
 
     this.fireMissile = function() {
         var firePos = playerTank.fire();
-        var missile = new Missile(firePos, function(miss, point) {
-            missiles.splice(missiles.indexOf(miss), 1);
-            explosions.push(new Explosion(point, function(exp) {
-                explosions.splice(explosions.indexOf(exp), 1);
-            }));
-            explosion(point);
-        });
-        missiles.push(missile);
+        if (firePos) {
+            var missile = new Missile(firePos, function(miss, point) {
+                missiles.splice(missiles.indexOf(miss), 1);
+                explosions.push(new Explosion(point, function(exp) {
+                    explosions.splice(explosions.indexOf(exp), 1);
+                }));
+                explosion(point);
+            });
+            missiles.push(missile);
+        }
 
         function explosion(point) {
             craters.push(point);

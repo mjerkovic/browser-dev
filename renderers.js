@@ -37,9 +37,17 @@ function WorldRenderer(playerTank, craters) {
             ctx.restore();
             ctx.save();
             ctx.translate(805, 102);
-            ctx.drawImage(img, 132, 33, 30, 30, 0, 0, 60, 60);
-            ctx.drawImage(img, 132, 33, 30, 30, 60, 0, 60, 60);
-            ctx.drawImage(img, 132, 33, 30, 30, 120, 0, 60, 60);
+            var missileX = 0;
+            var missileY = 0;
+            for (var i = 0; i < playerTank.missiles(); i++) {
+                ctx.drawImage(img, 132, 33, 30, 30, missileX, missileY, 60, 60);
+                if  (missileX == 120) {
+                    missileX = 0;
+                    missileY = missileY + 60;
+                } else {
+                    missileX = missileX + 60;
+                }
+            }
             ctx.restore();
         }
 
@@ -126,14 +134,15 @@ function ExplosionRenderer(explosions) {
 
 function MissileRenderer(missiles) {
 
-    var imgX = imgY = 30;
+    var imgX = 30;
+    var imgY = 30;
 
     this.render = function(ctx, img) {
         missiles.forEach(function(missile) {
             ctx.save();
             ctx.translate(missile.position().X(), missile.position().Y());
             ctx.rotate(angleFrom(missile.heading()));
-            var scale = Math.max(1, (missile.currentHeight() / missile.maxHeight() * 4));
+            var scale = Math.max(1, ((missile.currentHeight() / missile.maxHeight()) * 4));
             var scaledImgX = imgX * scale;
             var scaledImgY = imgY * scale;
             ctx.drawImage(img, 132, 33, 30, 30, -scaledImgX / 2, -scaledImgY / 2, scaledImgX, scaledImgY);

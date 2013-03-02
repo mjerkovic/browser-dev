@@ -31,6 +31,8 @@ function Tank(spec) {
     var angle = spec.angle || 45;
     var steering = new Steering();
     var health = 1;
+    var missileCapacity = spec.missiles || 6;
+    var missilesFired = 0;
 
     this.maxSpeed = function() {
         return maxSpeed;
@@ -50,6 +52,10 @@ function Tank(spec) {
 
     this.firingAngle = function() {
         return angle;
+    },
+
+    this.missiles = function() {
+        return missileCapacity - missilesFired;
     },
 
     this.angleTo = function(angleInDegrees) {
@@ -110,12 +116,17 @@ function Tank(spec) {
     },
 
     this.fire = function() {
-        return {
-            position: { x: pos.X() + (aimVector.X() * 20), y: pos.Y() + (aimVector.Y() * 20) },
-            heading: { x: aimVector.X(), y: aimVector.Y() },
-            range: 200,
-            firingAngle: angle
-        };
+        if (this.missiles() > 0) {
+            missilesFired++;
+            return {
+                position: { x: pos.X() + (aimVector.X() * 20), y: pos.Y() + (aimVector.Y() * 20) },
+                heading: { x: aimVector.X(), y: aimVector.Y() },
+                range: 200,
+                firingAngle: angle
+            };
+        } else {
+            return null;
+        }
     },
 
     this.hit = function() {
