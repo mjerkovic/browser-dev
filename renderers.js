@@ -27,7 +27,11 @@ function WorldRenderer(playerTank, craters) {
             ctx.strokeStyle = "FFFF00";
             ctx.strokeRect(805, 0, 195, 102);
             ctx.translate(805, 100);
-            ctx.rotate((Math.PI / 180) * -playerTank.firingAngle());
+            var angleOfTurret = (Math.PI / 180) * -playerTank.firingAngle();
+            ctx.beginPath();
+            ctx.arc(0, 0, 30, 0, angleOfTurret, true);
+            ctx.stroke();
+            ctx.rotate(angleOfTurret);
             ctx.fillRect(0, 0, 100, 2);
             ctx.restore();
             ctx.save();
