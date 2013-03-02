@@ -21,7 +21,6 @@ function startGame() {
     }, false);
     canvas.addEventListener('mousewheel', function(ev) {
         ev.preventDefault();
-        console.log(ev.wheelDelta, (ev.wheelDelta / 120) * 5);
         world.adjustFiringAngle((ev.wheelDelta / 120) * 5);
     }, false) ;
 	setInterval(function() {

@@ -20,10 +20,11 @@ function World(ctx) {
 
     this.adjustFiringAngle = function(angleDelta) {
         playerTank.angleTo(angleDelta);
-    }
+    },
 
     this.fireMissile = function() {
-        var missile = new Missile(playerTank.fire(), function(miss, point) {
+        var firePos = playerTank.fire();
+        var missile = new Missile(firePos, function(miss, point) {
             missiles.splice(missiles.indexOf(miss), 1);
             explosions.push(new Explosion(point, function(exp) {
                 explosions.splice(explosions.indexOf(exp), 1);

@@ -1,18 +1,42 @@
 function WorldRenderer(playerTank) {
 
     this.render = function(ctx, img) {
-        ctx.save();
-        for (var x=0; x < 26; x = x + 1) {
-            for (var y=0; y < 23; y = y + 1) {
-                ctx.drawImage(img, 165, 132, 31, 31, x*31, y*31, 31, 31);
+
+        function drawBackground() {
+            ctx.save();
+            for (var x=0; x < 26; x = x + 1) {
+                for (var y=0; y < 23; y = y + 1) {
+                    ctx.drawImage(img, 165, 132, 31, 31, x*31, y*31, 31, 31);
+                }
             }
+            ctx.restore();
         }
-        ctx.restore();
-        ctx.save();
-        ctx.fillStyle = "white";
-        ctx.font = "bold 12px Arial";
-        ctx.fillText(playerTank.firingAngle(), 750, 15);
-        ctx.restore();
+
+        function sidePanel() {
+            ctx.save();
+            ctx.fillRect(805, 0, 195, 700);
+            ctx.fillStyle = "FFFF00";
+            ctx.strokeStyle = "FFFF00";
+            ctx.strokeRect(805, 0, 195, 102);
+            ctx.translate(805, 100);
+            ctx.rotate((Math.PI / 180) * -playerTank.firingAngle());
+            ctx.fillRect(0, 0, 100, 2);
+            ctx.restore();
+            ctx.save();
+            ctx.fillStyle = "yellow";
+            ctx.font = "bold 48px Arial";
+            ctx.fillText(playerTank.firingAngle(), 920, 65);
+            ctx.restore();
+            ctx.save();
+            ctx.translate(805, 102);
+            ctx.drawImage(img, 132, 33, 30, 30, 0, 0, 60, 60);
+            ctx.drawImage(img, 132, 33, 30, 30, 60, 0, 60, 60);
+            ctx.drawImage(img, 132, 33, 30, 30, 120, 0, 60, 60);
+            ctx.restore();
+        }
+
+        drawBackground();
+        sidePanel();
     }
 
 }
