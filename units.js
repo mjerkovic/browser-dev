@@ -29,7 +29,7 @@ function Tank(spec) {
     var aimVector = $V([spec.headingX, spec.headingY, 0]);
     var veloc = $V([0, 0, 0]);
     var angle = spec.angle || 45;
-    var steering = new Steering();
+    var steering = spec.steering;
     var health = 1;
     var missileCapacity = spec.missiles || 6;
     var missilesFired = 0;
@@ -109,6 +109,10 @@ function Tank(spec) {
 
     this.arriveAt = function(pos) {
         steering.arriveAt(pos);
+    },
+
+    this.wander = function() {
+        steering.wanderAround();
     },
 
     this.aimAt = function(mousePos) {

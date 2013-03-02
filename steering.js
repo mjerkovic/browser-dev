@@ -4,6 +4,7 @@ function Steering() {
     var seekPos;
     var arriveOn = false;
     var arrivePos;
+    var wanderOn = false;
 
     this.calculate = function(entity) {
 
@@ -12,6 +13,9 @@ function Steering() {
         }
         if (arriveOn) {
             return arrive();
+        }
+        if (wanderOn) {
+            return wander();
         }
         return Vector.Zero(3);
 
@@ -31,6 +35,20 @@ function Steering() {
             return Vector.Zero(3);
 
         }
+
+        function wander() {
+            /*
+             Vector wanderTarget = new Vector(randomNumber(), randomNumber()).normalise().scale(WANDER_RADIUS);
+             Vector targetLocal = wanderTarget.add(new Vector(WANDER_DISTANCE, 0));
+             Vector targetWorld = pointToWorldSpace(targetLocal, entity.heading(), entity.side(),
+             entity.position());
+             return targetWorld.subtract(entity.position());
+             */
+            var wanderTarget = $V([random(), random(), 0]).toUnitVector().multiply(10);
+            var targetLocal = wanderTarget.add($V([20, 0, 0]));
+            var targetWorld = pointToWorldSpace(entity, targetLocal);
+            return targetWorld.subtract(entity.position());
+        }
     },
 
     this.seekTo = function(pos) {
@@ -49,6 +67,18 @@ function Steering() {
 
     this.arriveOff = function(pos) {
         arriveOn = false;
+    },
+
+    this.wanderAround = function() {
+        wanderOn = true;
+    },
+
+    this.wanderOff = function() {
+        wanderOn = false;
     }
 
+}
+
+function random() {
+    return (Math.random() - Math.random()) * 80.0;
 }
