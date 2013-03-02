@@ -125,7 +125,6 @@ function Tank(spec) {
             return {
                 position: { x: pos.X() + (aimVector.X() * 20), y: pos.Y() + (aimVector.Y() * 20) },
                 heading: { x: aimVector.X(), y: aimVector.Y() },
-                range: 200,
                 firingAngle: angle
             };
         } else {
@@ -144,15 +143,14 @@ function Missile(spec, callback) {
     var startingPos;
     var pos = startingPos = $V([spec.position.x, spec.position.y, 0]);
     var head = $V([spec.heading.x, spec.heading.y, 0]);
-    var veloc = 20;
-    var range = spec.range;
     var angle = (Math.PI / 180) * spec.firingAngle;
+    var initialHeight = spec.initialHeight || 2;
+    var currHeight = spec.currentHeight || 2;
+    var veloc = 20;
     var xVelocity = veloc * Math.cos(angle);
     var yVelocity = veloc * Math.sin(angle);
     var time = 0;
-    var initialHeight = 2;
-    var currHeight = 2;
-    var maxH = (Math.pow(yVelocity, 2) + initialHeight) / 19.6;
+    var maxH = spec.maxHeight || (Math.pow(yVelocity, 2) + initialHeight) / 19.6;
 
     this.currentHeight = function() {
         return currHeight;
