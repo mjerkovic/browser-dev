@@ -150,7 +150,8 @@ function Missile(spec, callback) {
     var xVelocity = veloc * Math.cos(angle);
     var yVelocity = veloc * Math.sin(angle);
     var time = 0;
-    var initialHeight = currHeight = 2;
+    var initialHeight = 2;
+    var currHeight = 2;
     var maxH = (Math.pow(yVelocity, 2) + initialHeight) / 19.6;
 
     this.currentHeight = function() {
