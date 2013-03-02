@@ -39,7 +39,7 @@ function World(ctx) {
         function explosion(point) {
             craters.push(point);
             tanks.forEach(function(tank) {
-                if (tank.position().distanceFrom(point) < 100) {
+                if (tank.position().distanceFrom($V([point.x, point.y, 0])) < 50) {
                     tank.hit();
                 }
             });

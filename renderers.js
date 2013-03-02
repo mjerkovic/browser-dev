@@ -124,6 +124,13 @@ function ExplosionRenderer(explosions) {
         explosions.forEach(function(explosion) {
             var frame = explosion.currentFrame();
             ctx.save();
+            ctx.fillStyle = "FF0000";
+            ctx.globalAlpha = 0.2;
+            ctx.beginPath();
+            ctx.arc(explosion.x, explosion.y, 50, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            ctx.save();
             ctx.translate(explosion.x, explosion.y);
             ctx.drawImage(img, frames[frame].x, 33, frames[frame].y, 32, -16, -16, 33, 32);
             ctx.restore();
