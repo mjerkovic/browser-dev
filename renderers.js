@@ -174,3 +174,28 @@ function GameRenderer(ctx, width, height, img, renderers) {
 		});
 	}
 }
+
+//0.39 rad = 22.5 degrees
+var Compass = {
+    directions:  [
+        { name: "N", x: 0, y: -1 },
+        { name: "NE", x: Math.cos(toRadians(45)), y: -Math.sin(toRadians(45)) },
+        { name: "E", x: 1, y: 0 },
+        { name: "SE", x: Math.cos(toRadians(45)), y: Math.sin(toRadians(45)) },
+        { name: "S", x: 0, y: 1 },
+        { name: "SW", x: -Math.cos(toRadians(45)), y: Math.sin(toRadians(45)) },
+        { name: "W", x: -1, y: 0 },
+        { name: "NW", x: -Math.cos(toRadians(45)), y: -Math.sin(toRadians(45)) }
+    ],
+
+    directionOf: function(heading) {
+        console.log(this.directions[0]);
+        for (var i = 0; i < this.directions.length; i++) {
+            var direction = this.directions[i];
+            var dot = Math.abs(heading.dot($V([direction.x, direction.y, 0])));
+            if (dot >= 0 && dot <= 0.39) {
+                return direction.name;
+            }
+        }
+    }
+}
