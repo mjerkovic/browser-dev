@@ -31,7 +31,7 @@ function World(ctx) {
     this.fireMissile = function() {
         var firePos = playerTank.fire();
         if (firePos) {
-            var missile = new Missile(firePos, function(miss, point) {
+            var missile = Armoury.missile(firePos, function(miss, point) {
                 missiles.splice(missiles.indexOf(miss), 1);
                 explosions.push(new Explosion(point, function(exp) {
                     explosions.splice(explosions.indexOf(exp), 1);
@@ -88,5 +88,9 @@ var Armoury = {
             angle: 45,
             velocity: 20
         });
+    },
+
+    missile: function(pos, callback) {
+        return new Missile(pos, callback);
     }
 }
