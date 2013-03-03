@@ -19,6 +19,43 @@ Vector.prototype.truncate = function(n) {
     return this.modulus() > n ? this.toUnitVector().multiply(n) : this;
 }
 
+function Cannon(spec) {
+
+    var aimVector = $V([spec.headingX, spec.headingY, 0]);
+    var angle = spec.angle || 45;
+    var veloc = spec.velocity || 20;
+
+    this.aim = function() {
+        return aimVector.dup();
+    }
+
+    this.elevation = function() {
+        return angle;
+    }
+
+    this.velocity = function() {
+        return veloc.dup();
+    }
+
+    this.aimAt = function(pos) {
+        aimVector = pos.dup().toUnitVector()
+    }
+
+    this.angleTo = function(angleInDegrees) {
+        angle = Math.min(Math.max(0, angle + angleInDegrees), 90);
+    }
+
+    this.fire = function(firingPosition) {
+        return {
+            position: { x: firingPosition.X() + ((Math.cos(toRadians(angle)) * aimVector.X()) * 20),
+                y: firingPosition.Y() + ((Math.sin(toRadians(angle)) * aimVector.Y()) * 20) },
+            heading: { x: aimVector.X(), y: aimVector.Y() },
+            firingAngle: angle
+        };
+    }
+
+}
+
 function Tank(spec) {
 
     var maxSpeed = 3;
@@ -26,13 +63,12 @@ function Tank(spec) {
     var mass = 1;
 	var pos = $V([spec.posX, spec.posY, 0]);
 	var head = $V([spec.headingX, spec.headingY, 0]);
-    var aimVector = $V([spec.headingX, spec.headingY, 0]);
     var veloc = $V([0, 0, 0]);
-    var angle = spec.angle || 45;
     var steering = new Steering();
     var health = 1;
     var missileCapacity = spec.missiles || 6;
     var missilesFired = 0;
+    var cannon = spec.cannon;
 
     this.maxSpeed = function() {
         return maxSpeed;
@@ -51,7 +87,7 @@ function Tank(spec) {
     },
 
     this.firingAngle = function() {
-        return angle;
+        return cannon.elevation();
     },
 
     this.missiles = function() {
@@ -59,12 +95,12 @@ function Tank(spec) {
     },
 
     this.angleTo = function(angleInDegrees) {
-        angle = Math.min(Math.max(0, angle + angleInDegrees), 90);
-        xstat.innerHTML = angle;
+        cannon.angleTo(angleInDegrees);
+        xstat.innerHTML = cannon.elevation();
     }
 
     this.aim = function() {
-        return aimVector.dup();
+        return cannon.aim();
     },
 
     this.power = function() {
@@ -116,17 +152,13 @@ function Tank(spec) {
     },
 
     this.aimAt = function(mousePos) {
-        aimVector = $V([mousePos.x, mousePos.y, 0]).subtract(pos).toUnitVector();
+        cannon.aimAt($V([mousePos.x, mousePos.y, 0]).subtract(pos));
     },
 
     this.fire = function() {
         if (this.missiles() > 0) {
             missilesFired++;
-            return {
-                position: { x: pos.X() + (aimVector.X() * 20), y: pos.Y() + (aimVector.Y() * 20) },
-                heading: { x: aimVector.X(), y: aimVector.Y() },
-                firingAngle: angle
-            };
+            return cannon.fire(pos);
         } else {
             return null;
         }
@@ -139,11 +171,15 @@ function Tank(spec) {
 
 }
 
+var toRadians = function(angleInDegrees) {
+    return (Math.PI / 180) * angleInDegrees;
+}
+
 function Missile(spec, callback) {
     var startingPos;
     var pos = startingPos = $V([spec.position.x, spec.position.y, 0]);
     var head = $V([spec.heading.x, spec.heading.y, 0]);
-    var angle = (Math.PI / 180) * spec.firingAngle;
+    var angle = toRadians(spec.firingAngle);
     var initialHeight = spec.initialHeight || 2;
     var currHeight = spec.currentHeight || 2;
     var veloc = 20;
