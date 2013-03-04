@@ -40,6 +40,11 @@ function WorldRenderer(playerTank, craters) {
             ctx.fillText(playerTank.firingAngle(), 920, 65);
             ctx.restore();
             ctx.save();
+            ctx.fillStyle = "yellow";
+            ctx.font = "bold 10px Arial";
+            ctx.fillText(playerTank.firingRange() + "m", 920, 90);
+            ctx.restore();
+            ctx.save();
             ctx.translate(805, 102);
             var missileX = 0;
             var missileY = 0;
@@ -112,6 +117,12 @@ function TankRenderer(tank) {
         ctx.lineTo(startX + 5, startY);
         ctx.moveTo(startX, startY - 5);
         ctx.lineTo(startX, startY + 5);
+        ctx.stroke();
+        ctx.restore();
+        ctx.save();
+        ctx.beginPath();
+        var targetZone = $V([tank.position().X() + tank.aim().multiply(tank.firingRange()).X(), tank.position().Y() + tank.aim().multiply(tank.firingRange()).Y(), 0]);
+        ctx.arc(targetZone.X(), targetZone.Y(), 10, 0, 2 * Math.PI);
         ctx.stroke();
         ctx.restore();
 	}

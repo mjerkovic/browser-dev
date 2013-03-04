@@ -86,7 +86,7 @@ var Armoury = {
             headingX: hx,
             headingY: hy,
             angle: 45,
-            velocity: 20
+            velocity: 50
         });
     },
 

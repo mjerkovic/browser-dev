@@ -22,8 +22,9 @@ Vector.prototype.truncate = function(n) {
 function Cannon(spec) {
 
     var aimVector = $V([spec.headingX, spec.headingY, 0]);
-    var angle = spec.angle || 45;
     var veloc = spec.velocity || 20;
+    var angle = spec.angle || 45;
+    var rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 9.81);
 
     this.aim = function() {
         return aimVector.dup();
@@ -34,7 +35,11 @@ function Cannon(spec) {
     }
 
     this.velocity = function() {
-        return veloc.dup();
+        return veloc;
+    }
+
+    this.range = function() {
+        return rangeInMetres;
     }
 
     this.aimAt = function(pos) {
@@ -43,6 +48,7 @@ function Cannon(spec) {
 
     this.angleTo = function(angleInDegrees) {
         angle = Math.min(Math.max(0, angle + angleInDegrees), 90);
+        rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 9.81);
     }
 
     this.fire = function(firingPosition) {
@@ -50,7 +56,8 @@ function Cannon(spec) {
             position: { x: firingPosition.X() + ((Math.cos(toRadians(angle)) * aimVector.X()) * 20),
                 y: firingPosition.Y() + ((Math.sin(toRadians(angle)) * aimVector.Y()) * 20) },
             heading: { x: aimVector.X(), y: aimVector.Y() },
-            firingAngle: angle
+            firingAngle: angle,
+            velocity: veloc
         };
     }
 
@@ -89,6 +96,14 @@ function Tank(spec) {
     this.firingAngle = function() {
         return cannon.elevation();
     },
+
+    this.firingVelocity = function() {
+        return cannon.velocity();
+    }
+
+    this.firingRange = function() {
+        return cannon.range();
+    }
 
     this.missiles = function() {
         return missileCapacity - missilesFired;
@@ -182,9 +197,9 @@ function Missile(spec, callback) {
     var angle = toRadians(spec.firingAngle);
     var initialHeight = spec.initialHeight || 2;
     var currHeight = spec.currentHeight || 2;
-    var veloc = 20;
-    var xVelocity = veloc * Math.cos(angle);
-    var yVelocity = veloc * Math.sin(angle);
+    var veloc = spec.velocity || 20;
+    var xVelocity = (veloc) * Math.cos(angle);
+    var yVelocity = (veloc) * Math.sin(angle);
     var time = 0;
     var maxH = spec.maxHeight || (Math.pow(yVelocity, 2) + initialHeight) / 19.6;
 
@@ -204,13 +219,17 @@ function Missile(spec, callback) {
         return head.dup();
     },
 
+    this.flightTime = function() {
+        return time;
+    }
+
     this.update = function() {
         time = time + 0.1;
         currHeight = yVelocity * time + 0.5 * -9.81 * time * time;
         if (currHeight < 0) {
             callback(this, { x: pos.X(), y: pos.Y() });
         } else {
-            pos = pos.add(head.multiply(xVelocity));
+            pos = pos.add(head.multiply(xVelocity * 0.1));
         }
     }
 }
