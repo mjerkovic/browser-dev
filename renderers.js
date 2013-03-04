@@ -20,7 +20,24 @@ function WorldRenderer(playerTank, craters) {
             ctx.restore();
         }
 
-        function sidePanel() {
+        function drawMissiles() {
+            ctx.save();
+            ctx.translate(805, 102);
+            var missileX = 0;
+            var missileY = 0;
+            for (var i = 0; i < playerTank.missiles(); i++) {
+                ctx.drawImage(img, 132, 33, 30, 30, missileX, missileY, 60, 60);
+                if (missileX == 120) {
+                    missileX = 0;
+                    missileY = missileY + 60;
+                } else {
+                    missileX = missileX + 60;
+                }
+            }
+            ctx.restore();
+        }
+
+        function drawFiringAngle() {
             ctx.save();
             ctx.fillRect(805, 0, 195, 700);
             ctx.fillStyle = "FFFF00";
@@ -44,25 +61,16 @@ function WorldRenderer(playerTank, craters) {
             ctx.font = "bold 10px Arial";
             ctx.fillText(playerTank.firingRange() + "m", 920, 90);
             ctx.restore();
-            ctx.save();
-            ctx.translate(805, 102);
-            var missileX = 0;
-            var missileY = 0;
-            for (var i = 0; i < playerTank.missiles(); i++) {
-                ctx.drawImage(img, 132, 33, 30, 30, missileX, missileY, 60, 60);
-                if  (missileX == 120) {
-                    missileX = 0;
-                    missileY = missileY + 60;
-                } else {
-                    missileX = missileX + 60;
-                }
-            }
-            ctx.restore();
+        }
+
+        function drawSidePanel() {
+            drawFiringAngle();
+            drawMissiles();
         }
 
         drawBackground();
         drawCraters();
-        sidePanel();
+        drawSidePanel();
     }
 
 }
@@ -117,12 +125,6 @@ function TankRenderer(tank) {
         ctx.lineTo(startX + 5, startY);
         ctx.moveTo(startX, startY - 5);
         ctx.lineTo(startX, startY + 5);
-        ctx.stroke();
-        ctx.restore();
-        ctx.save();
-        ctx.beginPath();
-        var targetZone = $V([tank.position().X() + tank.aim().multiply(tank.firingRange()).X(), tank.position().Y() + tank.aim().multiply(tank.firingRange()).Y(), 0]);
-        ctx.arc(targetZone.X(), targetZone.Y(), 10, 0, 2 * Math.PI);
         ctx.stroke();
         ctx.restore();
 	}
