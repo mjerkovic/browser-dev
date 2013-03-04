@@ -169,6 +169,11 @@ function MissileRenderer(missiles) {
             var scaledImgY = imgY * scale;
             ctx.drawImage(img, 132, 33, 30, 30, -scaledImgX / 2, -scaledImgY / 2, scaledImgX, scaledImgY);
             ctx.restore();
+            ctx.save();
+            ctx.fillStyle = "black";
+            ctx.font = "bold 10px Arial";
+            ctx.fillText(missile.timeToImpact().toFixed(1), 100, 100);
+            ctx.restore();
         });
 
     }

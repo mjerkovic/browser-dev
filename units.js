@@ -202,6 +202,7 @@ function Missile(spec, callback) {
     var yVelocity = (veloc) * Math.sin(angle);
     var time = 0;
     var maxH = spec.maxHeight || (Math.pow(yVelocity, 2) + initialHeight) / 19.6;
+    var impactTime = ((veloc * Math.sin(angle)) + Math.sqrt(Math.pow((veloc * Math.sin(angle)),2))) / 9.81;
 
     this.currentHeight = function() {
         return currHeight;
@@ -221,6 +222,10 @@ function Missile(spec, callback) {
 
     this.flightTime = function() {
         return time;
+    }
+
+    this.timeToImpact = function() {
+        return impactTime - time;
     }
 
     this.update = function() {
