@@ -45,16 +45,10 @@ function WorldRenderer(playerTank, craters) {
     drawMissiles = function(ctx, img) {
         ctx.save();
         ctx.translate(BATTLEFIELD_WIDTH + 5, 102);
-        var missileX = 0;
         var missileY = 0;
         for (var i = 0; i < playerTank.missiles(); i++) {
-            ctx.drawImage(img, 132, 33, 30, 30, missileX, missileY, 60, 60);
-            if (missileX == 120) {
-                missileX = 0;
-                missileY = missileY + 60;
-            } else {
-                missileX = missileX + 60;
-            }
+            ctx.drawImage(img, 132, 33, 30, 30, 0, missileY, 60, 60);
+            missileY = missileY + 60;
         }
         ctx.restore();
     }
