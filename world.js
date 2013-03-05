@@ -114,6 +114,7 @@ var Armoury = {
             initialHeight: missile.initialHeight(),
             currentHeight: missile.currentHeight(),
             maxHeight: missile.maxHeight(),
+            bomblet: true
         }, callback);
     }
 }

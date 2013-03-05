@@ -189,6 +189,7 @@ function Missile(spec, callback) {
     var maxH = spec.maxHeight || (Math.pow(yVelocity, 2) + initHeight) / 19.6;
     var impactTime = ((veloc * Math.sin(angleInRadians)) + Math.sqrt(Math.pow((veloc * Math.sin(angleInRadians)),2))) / 9.81;
     var mirv = spec.mirv || false;
+    var bomblet = spec.bomblet || false;
 
     this.currentHeight = function() {
         return currHeight;
@@ -228,6 +229,10 @@ function Missile(spec, callback) {
 
     this.initialHeight = function() {
         return initHeight;
+    }
+
+    this.isBomblet = function() {
+        return bomblet;
     }
 
     this.update = function() {

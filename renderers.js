@@ -179,9 +179,6 @@ function ExplosionRenderer(explosions) {
 
 function MissileRenderer(missiles) {
 
-    var imgX = 30;
-    var imgY = 30;
-
     this.render = function(ctx, img) {
         for (var i = 0; i < missiles.length; i++) {
             var missile = missiles[i];
@@ -189,9 +186,15 @@ function MissileRenderer(missiles) {
             ctx.translate(missile.position().X(), missile.position().Y());
             ctx.rotate(angleFrom(missile.heading()));
             var scale = Math.max(1, ((missile.currentHeight() / missile.maxHeight()) * 4));
+            var imgX = (missile.isBomblet()) ? 7 : 30;
+            var imgY = (missile.isBomblet()) ? 7 : 30;
             var scaledImgX = imgX * scale;
             var scaledImgY = imgY * scale;
-            ctx.drawImage(img, 132, 33, 30, 30, -scaledImgX / 2, -scaledImgY / 2, scaledImgX, scaledImgY);
+            if (missile.isBomblet()) {
+                ctx.drawImage(img, 277, 45, 7, 7, -scaledImgX / 2, -scaledImgY / 2, scaledImgX, scaledImgY);
+            } else {
+                ctx.drawImage(img, 132, 33, 30, 30, -scaledImgX / 2, -scaledImgY / 2, scaledImgX, scaledImgY);
+            }
             ctx.restore();
             ctx.save();
             ctx.fillStyle = "yellow";
