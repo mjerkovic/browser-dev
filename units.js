@@ -50,7 +50,7 @@ function Tank(spec) {
 	var pos = $V([spec.posX, spec.posY]);
 	var head = $V([spec.headingX, spec.headingY]);
     var veloc = $V([0, 0]);
-    var steering = new Steering();
+    var steering = spec.steering;
     var health = 1;
     var missileCapacity = spec.missiles || 6;
     var missilesFired = 0;

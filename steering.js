@@ -8,19 +8,20 @@ function Steering(walls) {
     var wallAvoidanceOn = false;
 
     this.calculate = function(entity) {
+        var steeringForce = Vector.Zero(2);
         if (seekOn) {
-            return seek(entity);
+            steeringForce = steeringForce.add(seek(entity));
         }
         if (arriveOn) {
-            return arrive(entity);
+            steeringForce = steeringForce.add(arrive(entity));
         }
         if (wanderOn) {
-            return wander(entity);
+            steeringForce = steeringForce.add(wander(entity));
         }
         if (wallAvoidanceOn) {
-            wallAvoidance(entity)
+            steeringForce = steeringForce.add(wallAvoidance(entity));
         }
-        return Vector.Zero(2);
+        return steeringForce;
     }
 
     var seek = function(entity) {
@@ -49,16 +50,14 @@ function Steering(walls) {
 
     var wallAvoidance = function(entity) {
         var feelers = createFeelersFor(entity);
-        var distanceToThisIP = 0.0;
         var distanceToClosestIP = 9999999999;
         var closestWall;
-
         var steeringForce = Vector.Zero(2);
         var closestPoint = Vector.Zero(2);
 
         for (var flr = 0; flr < feelers.length; flr++) {
             for (var wallIdx = 0; wallIdx < walls.length; wallIdx++) {
-                var intersection = lineIntersects(entity.position(), feelers[flr], walls[wallIdx].from(), walls[wallIdx].to());
+                var intersection = lineIntersects(entity.position(), feelers[flr], walls[wallIdx].getFrom(), walls[wallIdx].getTo());
                 if (intersection.intersects) {
                     if (intersection.distance < distanceToClosestIP) {
                         distanceToClosestIP = intersection.distance;
@@ -67,9 +66,9 @@ function Steering(walls) {
                     }
                 }
             }
-            if (closestWall != null) {
+            if (closestWall) {
                 var overShoot = feelers[flr].subtract(closestPoint);
-                steeringForce = closestWall.toUnitVector().multiply(overShoot.length());
+                steeringForce = closestWall.getNormal().toUnitVector().multiply(overShoot.length());
             }
         }
         return steeringForce;
