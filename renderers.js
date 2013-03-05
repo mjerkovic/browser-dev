@@ -1,76 +1,84 @@
+const APP_WIDTH = 1300;
+const APP_HEIGHT = 700;
+const BATTLEFIELD_WIDTH = 1100;
+const BATTLEFIELD_HEIGHT = 700;
+const INFO_PANEL_WIDTH = 200;
+const INFO_PANEL_HEIGHT = 700;
+
 function WorldRenderer(playerTank, craters) {
 
     this.render = function(ctx, img) {
+        drawBackground(ctx, img);
+        drawCraters(ctx, img);
+        drawSidePanel(ctx, img);
+    }
 
-        function drawBackground() {
-            ctx.save();
-            for (var x=0; x < 26; x = x + 1) {
-                for (var y=0; y < 23; y = y + 1) {
-                    ctx.drawImage(img, 165, 132, 31, 31, x*31, y*31, 31, 31);
-                }
+    var drawBackground = function(ctx, img) {
+        ctx.save();
+        var numXTiles = Math.ceil(BATTLEFIELD_WIDTH / 31);
+        var numYTiles = Math.ceil(BATTLEFIELD_HEIGHT / 31);
+        for (var x=0; x < numXTiles; x = x + 1) {
+            for (var y=0; y < numYTiles; y = y + 1) {
+                ctx.drawImage(img, 165, 132, 31, 31, x*31, y*31, 31, 31);
             }
-            ctx.restore();
         }
+        ctx.restore();
+    }
 
-        function drawCraters() {
-            ctx.save();
-            craters.forEach(function(crater) {
-                ctx.drawImage(img, 264, 165, 31, 31, crater.x - 15, crater.y - 15, 31, 31);
-            });
-            ctx.restore();
-        }
+    var drawCraters = function(ctx, img) {
+        ctx.save();
+        craters.forEach(function(crater) {
+            ctx.drawImage(img, 264, 165, 31, 31, crater.x - 15, crater.y - 15, 31, 31);
+        });
+        ctx.restore();
+    }
 
-        function drawMissiles() {
-            ctx.save();
-            ctx.translate(805, 102);
-            var missileX = 0;
-            var missileY = 0;
-            for (var i = 0; i < playerTank.missiles(); i++) {
-                ctx.drawImage(img, 132, 33, 30, 30, missileX, missileY, 60, 60);
-                if (missileX == 120) {
-                    missileX = 0;
-                    missileY = missileY + 60;
-                } else {
-                    missileX = missileX + 60;
-                }
+    drawMissiles = function(ctx, img) {
+        ctx.save();
+        ctx.translate(BATTLEFIELD_WIDTH + 5, 102);
+        var missileX = 0;
+        var missileY = 0;
+        for (var i = 0; i < playerTank.missiles(); i++) {
+            ctx.drawImage(img, 132, 33, 30, 30, missileX, missileY, 60, 60);
+            if (missileX == 120) {
+                missileX = 0;
+                missileY = missileY + 60;
+            } else {
+                missileX = missileX + 60;
             }
-            ctx.restore();
         }
+        ctx.restore();
+    }
 
-        function drawFiringAngle() {
-            ctx.save();
-            ctx.fillRect(805, 0, 195, 700);
-            ctx.fillStyle = "FFFF00";
-            ctx.strokeStyle = "FFFF00";
-            ctx.strokeRect(805, 0, 195, 102);
-            ctx.translate(805, 100);
-            var angleOfTurret = (Math.PI / 180) * -playerTank.firingAngle();
-            ctx.beginPath();
-            ctx.arc(0, 0, 30, 0, angleOfTurret, true);
-            ctx.stroke();
-            ctx.rotate(angleOfTurret);
-            ctx.fillRect(0, 0, 100, 2);
-            ctx.restore();
-            ctx.save();
-            ctx.fillStyle = "yellow";
-            ctx.font = "bold 48px Arial";
-            ctx.fillText(playerTank.firingAngle(), 920, 65);
-            ctx.restore();
-            ctx.save();
-            ctx.fillStyle = "yellow";
-            ctx.font = "bold 10px Arial";
-            ctx.fillText(playerTank.firingRange() + "m", 920, 90);
-            ctx.restore();
-        }
+    drawFiringAngle = function(ctx) {
+        ctx.save();
+        ctx.fillRect(BATTLEFIELD_WIDTH + 5, 0, 195, BATTLEFIELD_HEIGHT);
+        ctx.fillStyle = "FFFF00";
+        ctx.strokeStyle = "FFFF00";
+        ctx.strokeRect(BATTLEFIELD_WIDTH + 5, 0, 195, 102);
+        ctx.translate(BATTLEFIELD_WIDTH + 5, 100);
+        var angleOfTurret = (Math.PI / 180) * -playerTank.firingAngle();
+        ctx.beginPath();
+        ctx.arc(0, 0, 30, 0, angleOfTurret, true);
+        ctx.stroke();
+        ctx.rotate(angleOfTurret);
+        ctx.fillRect(0, 0, 100, 2);
+        ctx.restore();
+        ctx.save();
+        ctx.fillStyle = "yellow";
+        ctx.font = "bold 48px Arial";
+        ctx.fillText(playerTank.firingAngle(), BATTLEFIELD_WIDTH + 115, 65);
+        ctx.restore();
+        ctx.save();
+        ctx.fillStyle = "yellow";
+        ctx.font = "bold 10px Arial";
+        ctx.fillText(playerTank.firingRange() + "m", BATTLEFIELD_WIDTH + 115, 90);
+        ctx.restore();
+    }
 
-        function drawSidePanel() {
-            drawFiringAngle();
-            drawMissiles();
-        }
-
-        drawBackground();
-        drawCraters();
-        drawSidePanel();
+    var drawSidePanel = function(ctx, img) {
+        drawFiringAngle(ctx);
+        drawMissiles(ctx, img);
     }
 
 }
