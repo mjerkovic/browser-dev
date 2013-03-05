@@ -24,6 +24,12 @@ function startGame() {
         ev.preventDefault();
         world.adjustFiringAngle((ev.wheelDelta / 120) * 5);
     }, false);
+    document.addEventListener('keydown', function(ev) {
+        ev.preventDefault();
+        if (ev.keyCode == 70) {  // F
+            showFeelers = !showFeelers;
+        }
+    }, false);
 	setInterval(function() {
 		world.update();
 		world.render();
@@ -31,6 +37,7 @@ function startGame() {
 }
 
 var fireMirv = false;
+var showFeelers = false;
 
 function posFromMouseEvent(ev) {
     var x = ev.pageX - canvas.offsetLeft;

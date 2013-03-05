@@ -139,15 +139,17 @@ function TankRenderer(tank) {
         ctx.stroke();
         ctx.restore();
 
-        ctx.save();
-        var feelers = createFeelersFor(tank);
-        feelers.forEach(function(feeler) {
-            ctx.beginPath();
-            ctx.moveTo(tank.position().X(), tank.position().Y());
-            ctx.lineTo(feeler.X(), feeler.Y());
-            ctx.stroke();
-        });
-        ctx.restore();
+        if (showFeelers) {
+            ctx.save();
+            var feelers = createFeelersFor(tank);
+            feelers.forEach(function(feeler) {
+                ctx.beginPath();
+                ctx.moveTo(tank.position().X(), tank.position().Y());
+                ctx.lineTo(feeler.X(), feeler.Y());
+                ctx.stroke();
+            });
+            ctx.restore();
+        }
 	}
 	
 }
