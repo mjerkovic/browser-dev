@@ -5,6 +5,15 @@ const BATTLEFIELD_HEIGHT = 700;
 const INFO_PANEL_WIDTH = 200;
 const INFO_PANEL_HEIGHT = 700;
 
+function GameRenderer(ctx, width, height, img, renderers) {
+    this.render = function() {
+        ctx.clearRect(0, 0, height, width);
+        renderers.forEach(function(renderer) {
+            renderer.render(ctx, img);
+        });
+    }
+}
+
 function WorldRenderer(playerTank, craters) {
 
     this.render = function(ctx, img) {
@@ -28,7 +37,7 @@ function WorldRenderer(playerTank, craters) {
     var drawCraters = function(ctx, img) {
         ctx.save();
         craters.forEach(function(crater) {
-            ctx.drawImage(img, 264, 165, 31, 31, crater.x - 15, crater.y - 15, 31, 31);
+            ctx.drawImage(img, 264, 165, 31, 31, crater.X() - 15, crater.Y() - 15, 31, 31);
         });
         ctx.restore();
     }
@@ -201,15 +210,6 @@ function MissileRenderer(missiles) {
 }
 
 MissileRenderer.prototype = new Renderable();
-
-function GameRenderer(ctx, width, height, img, renderers) {
-	this.render = function() {
-		ctx.clearRect(0, 0, height, width);		
-		renderers.forEach(function(renderer) {
-			renderer.render(ctx, img);
-		});
-	}
-}
 
 //0.39 rad = 22.5 degrees
 var Compass = {

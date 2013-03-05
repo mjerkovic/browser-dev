@@ -177,15 +177,18 @@ function Missile(spec, callback) {
     var startingPos;
     var pos = startingPos = $V([spec.position.x, spec.position.y]);
     var head = $V([spec.heading.x, spec.heading.y]);
-    var angle = toRadians(spec.firingAngle);
-    var initialHeight = spec.initialHeight || 2;
-    var currHeight = spec.currentHeight || 2;
+    var angle = spec.firingAngle;
+    var angleInRadians = toRadians(angle);
+    var initHeight = spec.initialHeight || 0;
+    var currHeight = spec.currentHeight || 0;
+    var newHeight  = 99999999;
     var veloc = spec.velocity || 20;
-    var xVelocity = (veloc) * Math.cos(angle);
-    var yVelocity = (veloc) * Math.sin(angle);
+    var xVelocity = (veloc) * Math.cos(angleInRadians);
+    var yVelocity = (veloc) * Math.sin(angleInRadians);
     var time = 0;
-    var maxH = spec.maxHeight || (Math.pow(yVelocity, 2) + initialHeight) / 19.6;
-    var impactTime = ((veloc * Math.sin(angle)) + Math.sqrt(Math.pow((veloc * Math.sin(angle)),2))) / 9.81;
+    var maxH = spec.maxHeight || (Math.pow(yVelocity, 2) + initHeight) / 19.6;
+    var impactTime = ((veloc * Math.sin(angleInRadians)) + Math.sqrt(Math.pow((veloc * Math.sin(angleInRadians)),2))) / 9.81;
+    var mirv = spec.mirv || false;
 
     this.currentHeight = function() {
         return currHeight;
@@ -211,11 +214,29 @@ function Missile(spec, callback) {
         return impactTime - time;
     }
 
+    this.isMirv = function() {
+        return mirv;
+    }
+
+    this.firingAngle = function() {
+        return angle;
+    }
+
+    this.velocity = function() {
+        return veloc;
+    }
+
+    this.initialHeight = function() {
+        return initHeight;
+    }
+
     this.update = function() {
         time = time + 0.1;
-        currHeight = yVelocity * time + 0.5 * -9.81 * time * time;
-        if (currHeight < 0) {
-            callback(this, { x: pos.X(), y: pos.Y() });
+        newHeight = yVelocity * time + 0.5 * -9.81 * time * time;
+        var done = (mirv) ? newHeight <= currHeight : currHeight < 0;
+        currHeight = newHeight;
+        if (done) {
+            callback(this);
         } else {
             pos = pos.add(head.multiply(xVelocity * 0.1));
         }
@@ -223,8 +244,8 @@ function Missile(spec, callback) {
 }
 
 function Explosion(pos, endFunction) {
-    this.x = pos.x;
-    this.y = pos.y;
+    this.x = pos.X();
+    this.y = pos.Y();
     var frame = 0;
 
     this.currentFrame = function() {

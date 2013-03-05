@@ -36,25 +36,37 @@ function World(ctx) {
     this.fireMissile = function() {
         var firePos = playerTank.fire();
         if (firePos) {
-            var missile = Armoury.missile(firePos, function(miss, point) {
-                missiles.splice(missiles.indexOf(miss), 1);
-                explosions.push(new Explosion(point, function(exp) {
-                    explosions.splice(explosions.indexOf(exp), 1);
-                }));
-                explosion(point);
-            });
+            var missile = Armoury.missile(firePos, onImpact);
             missiles.push(missile);
         }
+    }
 
-        function explosion(point) {
-            craters.push(point);
-            tanks.forEach(function(tank) {
-                if (tank.position().distanceFrom($V([point.x, point.y])) < 50) {
-                    tank.hit();
-                }
-            });
+    var onImpact = function(miss) {
+        missiles.splice(missiles.indexOf(miss), 1);
+        if (miss.isMirv()) {
+            missiles.push(
+                Armoury.rainMissile(miss, miss.heading(), onImpact),
+                Armoury.rainMissile(miss, miss.heading().rotate((Math.PI / 2) * 0.5, Vector.Zero(2)), onImpact),
+                Armoury.rainMissile(miss, miss.heading().rotate((Math.PI / 2), Vector.Zero(2)), onImpact),
+                Armoury.rainMissile(miss, miss.heading().rotate((Math.PI / 2) * 3, Vector.Zero(2)), onImpact),
+                Armoury.rainMissile(miss, miss.heading().rotate((Math.PI / 2) * 3.5, Vector.Zero(2)), onImpact)
+            );
+        } else {
+            explosions.push(new Explosion(miss.position(), function(exp) {
+                explosions.splice(explosions.indexOf(exp), 1);
+            }));
+            explosion(miss.position());
         }
-    },
+    }
+
+    var explosion = function(point) {
+        craters.push(point);
+        tanks.forEach(function(tank) {
+            if (tank.position().distanceFrom(point) < 50) {
+                tank.hit();
+            }
+        });
+    }
 
     this.aimAt = function(pos) {
         playerTank.aimAt(pos);
@@ -85,6 +97,19 @@ var Armoury = {
     },
 
     missile: function(pos, callback) {
+        pos.mirv = true;
         return new Missile(pos, callback);
+    },
+
+    rainMissile: function(missile, heading, callback) {
+        return new Missile({
+            position: { x: missile.position().X(), y: missile.position().Y()  },
+            "heading": { x: heading.X(), y: heading.Y() },
+            firingAngle: missile.firingAngle(),
+            velocity: missile.velocity(),
+            initialHeight: missile.initialHeight(),
+            currentHeight: missile.currentHeight(),
+            maxHeight: missile.maxHeight(),
+        }, callback);
     }
 }
