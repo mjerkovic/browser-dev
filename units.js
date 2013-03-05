@@ -1,24 +1,3 @@
-Vector.prototype.X = function() {
-	return this.e(1);
-}
-Vector.prototype.Y = function() {
-	return this.e(2);
-}
-
-Vector.prototype.dividedBy = function(n) {
-    return this.map(function(el, index) {
-        return el / n;
-    });
-}
-
-Vector.prototype.length = function() {
-    return this.modulus()
-}
-
-Vector.prototype.truncate = function(n) {
-    return this.modulus() > n ? this.toUnitVector().multiply(n) : this;
-}
-
 function Cannon(spec) {
 
     var aimVector = $V([spec.headingX, spec.headingY]);

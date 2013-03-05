@@ -1,3 +1,28 @@
+Vector.prototype.X = function() {
+	return this.e(1);
+}
+Vector.prototype.Y = function() {
+	return this.e(2);
+}
+
+Vector.prototype.dividedBy = function(n) {
+    return this.map(function(el, index) {
+        return el / n;
+    });
+}
+
+Vector.prototype.length = function() {
+    return this.modulus()
+}
+
+Vector.prototype.truncate = function(n) {
+    return this.modulus() > n ? this.toUnitVector().multiply(n) : this;
+}
+
+Vector.prototype.perp = function() {
+    return Vector.create([-this.Y(), this.X()]);
+}
+
 function pointToWorldSpace(tank, point) {
     var h = tank.heading();
     var s = $V([-h.Y(), h.X()]);
