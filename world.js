@@ -6,12 +6,18 @@ function World(ctx) {
     var tanks = [];
     var explosions = [];
     var craters = [];
-    var playerTankSteering = new Steering();
     var playerTank = new Tank({posX: 400, posY: 400, headingX: 1, headingY: 0, missiles: 6, cannon: Armoury.simpleCannon(1, 0)});
     var enemyTankSteering = new Steering();
     var enemyTank = new Tank({posX: 700, posY: 200, headingX: -0.7071, headingY: -0.7071, missiles: 6, cannon: Armoury.simpleCannon(-0,7071, -0,7071)});
     tanks.push(playerTank, enemyTank);
     enemyTank.wander();
+    var walls = [];
+    walls.push(
+            new Wall($V([0, 0]), $V([800, 0])),
+            new Wall($V([0, 0]), $V([0, 700])),
+            new Wall($V([800, 0]), $V([800, 700])),
+            new Wall($V([0, 700]), $V([800, 700]))
+    );
     var playerTankRenderer = new TankRenderer(playerTank);
     var enemyTankRenderer = new TankRenderer(enemyTank);
     var worldRenderer = new WorldRenderer(playerTank, craters);
