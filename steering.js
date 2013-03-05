@@ -1,4 +1,4 @@
-function Steering() {
+function Steering(walls) {
 
     var seekOn = false;
     var seekPos;
@@ -37,15 +37,8 @@ function Steering() {
         }
 
         function wander() {
-            /*
-             Vector wanderTarget = new Vector(randomNumber(), randomNumber()).normalise().scale(WANDER_RADIUS);
-             Vector targetLocal = wanderTarget.add(new Vector(WANDER_DISTANCE, 0));
-             Vector targetWorld = pointToWorldSpace(targetLocal, entity.heading(), entity.side(),
-             entity.position());
-             return targetWorld.subtract(entity.position());
-             */
-            var wanderTarget = $V([random(), random()]).toUnitVector().multiply(10);
-            var targetLocal = wanderTarget.add($V([20, 0]));
+            var wanderTarget = $V([random(), random()]).toUnitVector().multiply(10); // wander radius
+            var targetLocal = wanderTarget.add($V([20, 0])); // wander distance
             var targetWorld = pointToWorldSpace(entity, targetLocal);
             return targetWorld.subtract(entity.position());
         }
