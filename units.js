@@ -145,6 +145,10 @@ function Tank(spec) {
         steering.wanderAround();
     },
 
+    this.wallAvoidance = function() {
+        steering.wallAvoidance();
+    }
+
     this.aimAt = function(mousePos) {
         cannon.aimAt($V([mousePos.x, mousePos.y]).subtract(pos));
     },

@@ -16,6 +16,7 @@ function World(ctx) {
     var enemyTank = new Tank({posX: 700, posY: 200, headingX: -0.7071, headingY: -0.7071, missiles: 6, cannon: Armoury.simpleCannon(-0,7071, -0,7071), steering: new Steering(walls)});
     tanks.push(playerTank, enemyTank);
     enemyTank.wander();
+    enemyTank.wallAvoidance();
     var playerTankRenderer = new TankRenderer(playerTank);
     var enemyTankRenderer = new TankRenderer(enemyTank);
     var worldRenderer = new WorldRenderer(playerTank, craters);

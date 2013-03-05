@@ -47,3 +47,35 @@ function createFeelersFor(entity) {
 
     return feelers;
 }
+
+function lineIntersects(position, feeler, from, to) {
+    var AyCy = position.Y() - from.Y();
+    var DxCx = to.X() - from.X();
+    var AxCx = position.X() - from.X();
+    var DyCy = to.Y() - from.Y();
+
+    var rTop = (AyCy * DxCx) - (AxCx * DyCy);
+
+    var BxAx = feeler.X() - position.X();
+    var ByAy = feeler.Y() - position.Y();
+
+    var rBot = BxAx * DyCy - ByAy * DxCx;
+    var sTop = AyCy * BxAx - AxCx * ByAy;
+    var sBot = BxAx * DyCy - ByAy * DxCx;
+
+    if (rBot == 0 || sBot == 0) {
+        return { intersects: false, distance: 0, intersectionPoint: Vector.Zero(2) };  // lines are parallel
+    }
+
+    var r = rTop / rBot;
+    var s = sTop / sBot;
+
+    if (r > 0 && r < 1 && s > 0 && s < 1) {
+        var point = feeler.subtract(position);
+        point = point.multiply(r);
+        point = position.add(point);
+        return { intersects: true, distance: position.subtract(feeler).modulus() * r, intersectionPoint: point };
+    }
+
+    return { intersects: false, distance: 0, intersectionPoint: Vector.Zero(2) };
+}
