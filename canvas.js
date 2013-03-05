@@ -5,6 +5,7 @@ function startGame() {
     canvas.addEventListener('mousedown', function(ev) {
         var pos = posFromMouseEvent(ev);
         ev.preventDefault();
+        fireMirv = ev.ctrlKey;
         switch (ev.which) {
             case 1: world.movePlayerTankTo(pos);
                 break;
@@ -22,12 +23,14 @@ function startGame() {
     canvas.addEventListener('mousewheel', function(ev) {
         ev.preventDefault();
         world.adjustFiringAngle((ev.wheelDelta / 120) * 5);
-    }, false) ;
+    }, false);
 	setInterval(function() {
 		world.update();
 		world.render();
 	}, 100);
 }
+
+var fireMirv = false;
 
 function posFromMouseEvent(ev) {
     var x = ev.pageX - canvas.offsetLeft;

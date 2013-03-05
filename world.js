@@ -36,7 +36,7 @@ function World(ctx) {
     this.fireMissile = function() {
         var firePos = playerTank.fire();
         if (firePos) {
-            var missile = Armoury.missile(firePos, onImpact);
+            var missile = (fireMirv) ? Armoury.mirvMissile(firePos, onImpact) : Armoury.missile(firePos, onImpact);
             missiles.push(missile);
         }
     }
@@ -97,8 +97,12 @@ var Armoury = {
     },
 
     missile: function(pos, callback) {
-        pos.mirv = true;
         return new Missile(pos, callback);
+    },
+
+    mirvMissile: function(pos, callback) {
+        pos.mirv = true;
+        return this.missile(pos, callback);
     },
 
     rainMissile: function(missile, heading, callback) {
