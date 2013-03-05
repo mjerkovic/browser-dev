@@ -17,22 +17,22 @@ function Steering() {
         if (wanderOn) {
             return wander();
         }
-        return Vector.Zero(3);
+        return Vector.Zero(2);
 
         function seek() {
-            return seekPos.subtract($V([entity.position().X(), entity.position().Y(), 0])).toUnitVector().multiply(entity.maxSpeed());
+            return seekPos.subtract($V([entity.position().X(), entity.position().Y()])).toUnitVector().multiply(entity.maxSpeed());
         }
 
         function arrive() {
-            var toTarget = arrivePos.subtract($V([entity.position().X(), entity.position().Y(), 0]));
+            var toTarget = arrivePos.subtract($V([entity.position().X(), entity.position().Y()]));
             var dist = toTarget.modulus();
             if (dist > 0) {
                 var speed = dist / 60; // decel=3 * tweaker=20
                 //speed = Math.min(speed, entity.getMaxSpeed());
                 var desiredVelocity = toTarget.multiply(speed / dist);
-                return desiredVelocity.subtract($V([entity.heading().x, entity.heading().y, 0]));
+                return desiredVelocity.subtract($V([entity.heading().x, entity.heading().y]));
             }
-            return Vector.Zero(3);
+            return Vector.Zero(2);
 
         }
 
@@ -44,15 +44,15 @@ function Steering() {
              entity.position());
              return targetWorld.subtract(entity.position());
              */
-            var wanderTarget = $V([random(), random(), 0]).toUnitVector().multiply(10);
-            var targetLocal = wanderTarget.add($V([20, 0, 0]));
+            var wanderTarget = $V([random(), random()]).toUnitVector().multiply(10);
+            var targetLocal = wanderTarget.add($V([20, 0]));
             var targetWorld = pointToWorldSpace(entity, targetLocal);
             return targetWorld.subtract(entity.position());
         }
     },
 
     this.seekTo = function(pos) {
-        seekPos = $V([pos.x, pos.y, 0]);
+        seekPos = $V([pos.x, pos.y]);
         seekOn = true;
     },
 
@@ -61,7 +61,7 @@ function Steering() {
     },
 
     this.arriveAt = function(pos) {
-        arrivePos = $V([pos.x, pos.y, 0]);
+        arrivePos = $V([pos.x, pos.y]);
         arriveOn = true;
     },
 

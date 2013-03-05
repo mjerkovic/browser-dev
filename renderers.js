@@ -77,7 +77,7 @@ function WorldRenderer(playerTank, craters) {
 
 function Renderable() {
     angleFrom = function(vector) {
-        var result = vector.angleFrom($V([0, -1, 0]));
+        var result = vector.angleFrom($V([0, -1]));
         return (vector.X() < 0) ? -result : result;
 
     }
@@ -126,6 +126,16 @@ function TankRenderer(tank) {
         ctx.moveTo(startX, startY - 5);
         ctx.lineTo(startX, startY + 5);
         ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        var feelers = createFeelersFor(tank);
+        feelers.forEach(function(feeler) {
+            ctx.beginPath();
+            ctx.moveTo(tank.position().X(), tank.position().Y());
+            ctx.lineTo(feeler.X(), feeler.Y());
+            ctx.stroke();
+        });
         ctx.restore();
 	}
 	
@@ -210,7 +220,7 @@ var Compass = {
         console.log(this.directions[0]);
         for (var i = 0; i < this.directions.length; i++) {
             var direction = this.directions[i];
-            var dot = Math.abs(heading.dot($V([direction.x, direction.y, 0])));
+            var dot = Math.abs(heading.dot($V([direction.x, direction.y])));
             if (dot >= 0 && dot <= 0.39) {
                 return direction.name;
             }

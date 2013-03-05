@@ -21,7 +21,7 @@ Vector.prototype.truncate = function(n) {
 
 function Cannon(spec) {
 
-    var aimVector = $V([spec.headingX, spec.headingY, 0]);
+    var aimVector = $V([spec.headingX, spec.headingY]);
     var veloc = spec.velocity || 20;
     var angle = spec.angle || 45;
     var rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 9.81);
@@ -68,9 +68,9 @@ function Tank(spec) {
     var maxSpeed = 3;
     var maxTurnRate = 0.47
     var mass = 1;
-	var pos = $V([spec.posX, spec.posY, 0]);
-	var head = $V([spec.headingX, spec.headingY, 0]);
-    var veloc = $V([0, 0, 0]);
+	var pos = $V([spec.posX, spec.posY]);
+	var head = $V([spec.headingX, spec.headingY]);
+    var veloc = $V([0, 0]);
     var steering = new Steering();
     var health = 1;
     var missileCapacity = spec.missiles || 6;
@@ -127,7 +127,7 @@ function Tank(spec) {
     },
 
     this.pointTo = function(h) {
-        var target = $V([h.x, h.y, 0]);
+        var target = $V([h.x, h.y]);
         var result = target.subtract(pos);
         head = result.toUnitVector();
     },
@@ -145,7 +145,7 @@ function Tank(spec) {
         function restrictTurnRate(steeringForce) {
             var angle = head.dot(head.add(steeringForce).toUnitVector());
             if (angle < 0) {
-                return Vector.Zero(3);
+                return Vector.Zero(2);
             } else if (angle > maxTurnRate) {
                 return steeringForce.multiply(maxTurnRate);
             } else {
@@ -167,7 +167,7 @@ function Tank(spec) {
     },
 
     this.aimAt = function(mousePos) {
-        cannon.aimAt($V([mousePos.x, mousePos.y, 0]).subtract(pos));
+        cannon.aimAt($V([mousePos.x, mousePos.y]).subtract(pos));
     },
 
     this.fire = function() {
@@ -192,8 +192,8 @@ var toRadians = function(angleInDegrees) {
 
 function Missile(spec, callback) {
     var startingPos;
-    var pos = startingPos = $V([spec.position.x, spec.position.y, 0]);
-    var head = $V([spec.heading.x, spec.heading.y, 0]);
+    var pos = startingPos = $V([spec.position.x, spec.position.y]);
+    var head = $V([spec.heading.x, spec.heading.y]);
     var angle = toRadians(spec.firingAngle);
     var initialHeight = spec.initialHeight || 2;
     var currHeight = spec.currentHeight || 2;
