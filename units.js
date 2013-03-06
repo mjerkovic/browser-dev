@@ -135,18 +135,22 @@ function Tank(spec) {
 
     this.seekTo = function(pos) {
         steering.seekTo(pos);
+        return this;
     },
 
     this.arriveAt = function(pos) {
         steering.arriveAt(pos);
+        return this;
     },
 
     this.wander = function() {
         steering.wanderAround();
+        return this;
     },
 
     this.wallAvoidance = function() {
         steering.wallAvoidance();
+        return this;
     }
 
     this.aimAt = function(mousePos) {
