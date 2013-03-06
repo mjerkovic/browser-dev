@@ -101,11 +101,10 @@ function TankRenderer(tank) {
 
 	this.render = function(ctx, img) {
 		ctx.save();
-		//ctx.translate(0, canvas.height);
-		//ctx.scale(1.0, -1.0);
 		ctx.translate(tank.position().X(), tank.position().Y());
 		ctx.rotate(angleFrom(tank.heading()));
-		ctx.drawImage(img, tankImgPos[frame % tankImgPos.length], 34, 30, 31, -16, -15, 30, 31);
+        var imgPos = (tank.velocity().length() >= 0 && tank.velocity().length() < 0.4) ? tankImgPos.length - 1 : frame % tankImgPos.length;
+		ctx.drawImage(img, tankImgPos[imgPos], 34, 30, 31, -16, -15, 30, 31);
         ctx.restore();
 		frame = (frame == tankImgPos.length - 1) ? 0 : frame + 1;
 

@@ -164,7 +164,6 @@ function Tank(spec) {
 
     this.hit = function() {
         health = health - 0.25;
-        console.log(health);
     }
 
 }

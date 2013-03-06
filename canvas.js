@@ -25,7 +25,7 @@ function startGame() {
         world.adjustFiringAngle((ev.wheelDelta / 120) * 5);
     }, false);
     document.addEventListener('keydown', function(ev) {
-        ev.preventDefault();
+        //ev.preventDefault();
         if (ev.keyCode == 70) {  // F
             showFeelers = !showFeelers;
         }
