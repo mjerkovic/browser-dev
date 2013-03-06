@@ -79,3 +79,15 @@ function lineIntersects(position, feeler, from, to) {
 
     return { intersects: false, distance: 0, intersectionPoint: Vector.Zero(2) };
 }
+
+var Trajectory = {
+    maxHeight: function(velocity, angleInDegrees, initialHeight) {
+        var yVelocity = velocity * Math.sin(toRadians(angleInDegrees));
+        return (Math.pow(yVelocity, 2) + (initialHeight || 0)) / 19.6;
+    },
+
+    impactTime: function(velocity, angleInDegrees) {
+        return ((velocity * Math.sin(toRadians(angleInDegrees))) +
+            Math.sqrt(Math.pow((velocity * Math.sin(toRadians(angleInDegrees))),2))) / 9.81;
+    }
+}

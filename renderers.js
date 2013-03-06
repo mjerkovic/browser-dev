@@ -44,7 +44,7 @@ function WorldRenderer(playerTank, craters) {
 
     drawMissiles = function(ctx, img) {
         ctx.save();
-        ctx.translate(BATTLEFIELD_WIDTH + 5, 102);
+        ctx.translate(BATTLEFIELD_WIDTH + 5, 302);
         var missileY = 0;
         for (var i = 0; i < playerTank.missiles(); i++) {
             ctx.drawImage(img, 132, 33, 30, 30, 0, missileY, 60, 60);
@@ -71,11 +71,6 @@ function WorldRenderer(playerTank, craters) {
         ctx.fillStyle = "yellow";
         ctx.font = "bold 48px Arial";
         ctx.fillText(playerTank.firingAngle() + "\u00B0", BATTLEFIELD_WIDTH + 115, 65);
-        ctx.restore();
-        ctx.save();
-        ctx.fillStyle = "yellow";
-        ctx.font = "bold 10px Arial";
-        ctx.fillText(playerTank.firingRange() + "m", BATTLEFIELD_WIDTH + 115, 90);
         ctx.restore();
     }
 
@@ -155,6 +150,59 @@ function TankRenderer(tank) {
 
 TankRenderer.prototype = new Renderable();
 
+function TrajectoryRenderer(tank) {
+
+    this.render = function(ctx) {
+        ctx.save();
+        ctx.translate(BATTLEFIELD_WIDTH + 5, 302);
+        ctx.strokeStyle = "yellow";
+        ctx.fillStyle = "yellow";
+        ctx.beginPath();
+        ctx.moveTo(1, 0);
+        ctx.lineTo(1, -200);
+        ctx.moveTo(0, 0);
+        ctx.lineTo(200, 0);
+        ctx.stroke();
+        ctx.moveTo(0, 0);
+
+        var maxHeight = Trajectory.maxHeight(tank.firingVelocity(), tank.firingAngle());
+        var impactTime = Trajectory.impactTime(tank.firingVelocity(), tank.firingAngle());
+        var firingRange = tank.firingRange();
+        var scaleX = (firingRange > 200) ? 200 / firingRange : 1;
+        var scaleY = (maxHeight > 200) ? 200 / maxHeight : 1;
+        ctx.scale(scaleX, scaleY);
+        impactTime = parseFloat(impactTime.toFixed(1));
+        var xVelocity = tank.firingVelocity() * Math.cos(toRadians(tank.firingAngle()));
+        var yVelocity = tank.firingVelocity() * Math.sin(toRadians(tank.firingAngle()));
+        var xPos = 1;
+        var yPos = 0;
+        var maxX;
+        var maxY;
+        var previousHeight = -maxHeight;
+        for (var time = 0.1; time < impactTime; time = time + 0.1) {
+            ctx.beginPath();
+            ctx.moveTo(xPos, -yPos);
+            xPos = xPos + (xVelocity * 0.1);
+            yPos = Math.max(0, yVelocity * time + 0.5 * -9.81 * time * time);
+            ctx.lineTo(xPos, -yPos);
+            ctx.stroke();
+            if (typeof maxY == 'undefined' && yPos < previousHeight) {
+                maxY = yPos;
+                maxX = xPos;
+            } else {
+                previousHeight = yPos;
+            }
+        }
+        ctx.font = "bold 10px Arial";
+        ctx.fillText(maxHeight.toFixed(0) + "m", (maxX < 30) ? maxX + 30 : maxX - 10, -maxY - 8);
+        ctx.font = "bold 14px Arial";
+        //ctx.fillText(firingRange + "m", 120, -160);
+        ctx.fillText(firingRange + "m", (maxX < 30) ? maxX + 50 : maxX - 10, -20);
+        ctx.restore()
+    }
+
+}
+
 function ExplosionRenderer(explosions) {
 
     var frames = [{"x": 33, "y": 31}, {"x": 66, "y": 31}, {"x": 99, "y": 30}];
@@ -199,7 +247,7 @@ function MissileRenderer(missiles) {
             ctx.save();
             ctx.fillStyle = "yellow";
             ctx.font = "bold 10px Arial";
-            ctx.translate(BATTLEFIELD_WIDTH + 5, 102);
+            ctx.translate(BATTLEFIELD_WIDTH + 5, 302);
             ctx.fillText("Time to impact: " + Math.max(0, missile.timeToImpact()).toFixed(1) + "s", 70, idx * 60 + 30);
             ctx.restore();
         });

@@ -189,8 +189,8 @@ function Missile(spec, callback) {
     var xVelocity = (veloc) * Math.cos(angleInRadians);
     var yVelocity = (veloc) * Math.sin(angleInRadians);
     var time = 0;
-    var maxH = spec.maxHeight || (Math.pow(yVelocity, 2) + initHeight) / 19.6;
-    var impactTime = ((veloc * Math.sin(angleInRadians)) + Math.sqrt(Math.pow((veloc * Math.sin(angleInRadians)),2))) / 9.81;
+    var maxH = Trajectory.maxHeight(veloc, angle, initHeight);
+    var impactTime = Trajectory.impactTime(veloc, angle);
     var mirv = spec.mirv || false;
     var bomblet = spec.bomblet || false;
 

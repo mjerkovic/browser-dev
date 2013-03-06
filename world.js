@@ -18,12 +18,13 @@ function World(ctx) {
     playerTank.wallAvoidance();
     enemyTank.wander().wallAvoidance();
     var playerTankRenderer = new TankRenderer(playerTank);
+    var trajectoryRenderer = new TrajectoryRenderer(playerTank);
     var enemyTankRenderer = new TankRenderer(enemyTank);
     var worldRenderer = new WorldRenderer(playerTank, craters);
     var missileRenderer = new MissileRenderer(missiles);
     var explosionRenderer = new ExplosionRenderer(explosions);
     var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, singleImage,
-        [worldRenderer, playerTankRenderer, enemyTankRenderer, explosionRenderer, missileRenderer]);
+        [worldRenderer, trajectoryRenderer, playerTankRenderer, enemyTankRenderer, explosionRenderer, missileRenderer]);
 
     this.movePlayerTankTo = function(pos) {
         playerTank.arriveAt(pos);
