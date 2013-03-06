@@ -26,7 +26,8 @@ function World(ctx) {
         [worldRenderer, playerTankRenderer, enemyTankRenderer, explosionRenderer, missileRenderer]);
 
     this.movePlayerTankTo = function(pos) {
-        playerTank.seekTo(pos);
+        //playerTank.seekTo(pos);
+        playerTank.arriveAt(pos);
     },
 
     this.adjustFiringAngle = function(angleDelta) {

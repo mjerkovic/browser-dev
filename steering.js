@@ -25,17 +25,17 @@ function Steering(walls) {
     }
 
     var seek = function(entity) {
-        return seekPos.subtract($V([entity.position().X(), entity.position().Y()])).toUnitVector().multiply(entity.maxSpeed());
+        return seekPos.subtract(entity.position()).toUnitVector().multiply(entity.maxSpeed());
     }
 
     var arrive = function(entity) {
-        var toTarget = arrivePos.subtract($V([entity.position().X(), entity.position().Y()]));
-        var dist = toTarget.modulus();
+        var toTarget = arrivePos.subtract(entity.position());
+        var dist = toTarget.length();
         if (dist > 0) {
-            var speed = dist / 60; // decel=3 * tweaker=20
-            //speed = Math.min(speed, entity.getMaxSpeed());
+            var speed = dist / 20; // decel=3 * tweaker=20
+            speed = Math.min(speed, entity.maxSpeed());
             var desiredVelocity = toTarget.multiply(speed / dist);
-            return desiredVelocity.subtract($V([entity.heading().x, entity.heading().y]));
+            return desiredVelocity.subtract(entity.velocity());
         }
         return Vector.Zero(2);
 
