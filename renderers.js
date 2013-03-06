@@ -182,8 +182,7 @@ function ExplosionRenderer(explosions) {
 function MissileRenderer(missiles) {
 
     this.render = function(ctx, img) {
-        for (var i = 0; i < missiles.length; i++) {
-            var missile = missiles[i];
+        missiles.forEach(function(missile, idx) {
             ctx.save();
             ctx.translate(missile.position().X(), missile.position().Y());
             ctx.rotate(angleFrom(missile.heading()));
@@ -202,26 +201,9 @@ function MissileRenderer(missiles) {
             ctx.fillStyle = "yellow";
             ctx.font = "bold 10px Arial";
             ctx.translate(BATTLEFIELD_WIDTH + 5, 102);
-            ctx.fillText("Time to impact: " + Math.max(0, missile.timeToImpact()).toFixed(1) + "s", 70, i * 60 + 30);
-            ctx.restore();
-        }
-/*
-        missiles.forEach(function(missile) {
-            ctx.save();
-            ctx.translate(missile.position().X(), missile.position().Y());
-            ctx.rotate(angleFrom(missile.heading()));
-            var scale = Math.max(1, ((missile.currentHeight() / missile.maxHeight()) * 4));
-            var scaledImgX = imgX * scale;
-            var scaledImgY = imgY * scale;
-            ctx.drawImage(img, 132, 33, 30, 30, -scaledImgX / 2, -scaledImgY / 2, scaledImgX, scaledImgY);
-            ctx.restore();
-            ctx.save();
-            ctx.fillStyle = "black";
-            ctx.font = "bold 10px Arial";
-            ctx.fillText(missile.timeToImpact().toFixed(1), 100, 100);
+            ctx.fillText("Time to impact: " + Math.max(0, missile.timeToImpact()).toFixed(1) + "s", 70, idx * 60 + 30);
             ctx.restore();
         });
-*/
     }
 
 }
