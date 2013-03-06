@@ -70,7 +70,7 @@ function WorldRenderer(playerTank, craters) {
         ctx.save();
         ctx.fillStyle = "yellow";
         ctx.font = "bold 48px Arial";
-        ctx.fillText(playerTank.firingAngle(), BATTLEFIELD_WIDTH + 115, 65);
+        ctx.fillText(playerTank.firingAngle() + "\u00B0", BATTLEFIELD_WIDTH + 115, 65);
         ctx.restore();
         ctx.save();
         ctx.fillStyle = "yellow";
