@@ -5,11 +5,11 @@ const BATTLEFIELD_HEIGHT = 700;
 const INFO_PANEL_WIDTH = 200;
 const INFO_PANEL_HEIGHT = 700;
 
-function GameRenderer(ctx, width, height, img, renderers) {
+function GameRenderer(ctx, width, height, imageLibrary, renderers) {
     this.render = function() {
         ctx.clearRect(0, 0, height, width);
         renderers.forEach(function(renderer) {
-            renderer.render(ctx, img);
+            renderer.render(ctx, imageLibrary);
         });
     }
 }
@@ -22,32 +22,32 @@ function WorldRenderer(playerTank, craters) {
         drawSidePanel(ctx, img);
     }
 
-    var drawBackground = function(ctx, img) {
+    var drawBackground = function(ctx, imageLibrary) {
         ctx.save();
         var numXTiles = Math.ceil(BATTLEFIELD_WIDTH / 31);
         var numYTiles = Math.ceil(BATTLEFIELD_HEIGHT / 31);
         for (var x=0; x < numXTiles; x = x + 1) {
             for (var y=0; y < numYTiles; y = y + 1) {
-                ctx.drawImage(img, 165, 132, 31, 31, x*31, y*31, 31, 31);
+                ctx.drawImage(imageLibrary.mainImg, 165, 132, 31, 31, x*31, y*31, 31, 31);
             }
         }
         ctx.restore();
     }
 
-    var drawCraters = function(ctx, img) {
+    var drawCraters = function(ctx, imageLibrary) {
         ctx.save();
         craters.forEach(function(crater) {
-            ctx.drawImage(img, 264, 165, 31, 31, crater.X() - 15, crater.Y() - 15, 31, 31);
+            ctx.drawImage(imageLibrary.mainImg, 264, 165, 31, 31, crater.X() - 15, crater.Y() - 15, 31, 31);
         });
         ctx.restore();
     }
 
-    drawMissiles = function(ctx, img) {
+    drawMissiles = function(ctx, imageLibrary) {
         ctx.save();
         ctx.translate(BATTLEFIELD_WIDTH + 5, 302);
         var missileY = 0;
         for (var i = 0; i < playerTank.missiles(); i++) {
-            ctx.drawImage(img, 132, 33, 30, 30, 0, missileY, 60, 60);
+            ctx.drawImage(imageLibrary.mainImg, 132, 33, 30, 30, 0, missileY, 60, 60);
             missileY = missileY + 60;
         }
         ctx.restore();
@@ -74,9 +74,9 @@ function WorldRenderer(playerTank, craters) {
         ctx.restore();
     }
 
-    var drawSidePanel = function(ctx, img) {
+    var drawSidePanel = function(ctx, imageLibrary) {
         drawFiringAngle(ctx);
-        drawMissiles(ctx, img);
+        drawMissiles(ctx, imageLibrary);
     }
 
 }
@@ -89,19 +89,26 @@ function Renderable() {
     }
 }
 
-function TankRenderer(tank) {
+function PlayerTankRenderer(tank) {
 	
 	var frame = 0;
-	var tankImgPos = [726, 693, 660, 627, 594, 561, 528, 495];
 
-	this.render = function(ctx, img) {
+	this.render = function(ctx, imageLibrary) {
 		ctx.save();
 		ctx.translate(tank.position().X(), tank.position().Y());
 		ctx.rotate(angleFrom(tank.heading()));
+        var tankImgPos = imageLibrary.playerImgPos;
         var imgPos = (tank.velocity().length() >= 0 && tank.velocity().length() < 0.4) ? tankImgPos.length - 1 : frame % tankImgPos.length;
-		ctx.drawImage(img, tankImgPos[imgPos], 34, 30, 31, -16, -15, 30, 31);
+        var img = tankImgPos[imgPos];
+        ctx.drawImage(imageLibrary.mainImg, img.x, img.y, img.w, img.h, -img.w/2, -img.h/2, img.w, img.h);
         ctx.restore();
-		frame = (frame == tankImgPos.length - 1) ? 0 : frame + 1;
+        frame = (frame == tankImgPos.length - 1) ? 0 : frame + 1;
+
+        ctx.save();
+        ctx.translate(tank.position().X(), tank.position().Y());
+        ctx.rotate(angleFrom(tank.aim()));
+        ctx.drawImage(imageLibrary.playerTurretImg, 0, 0, 32, 32, -16, -16, 32, 32);
+        ctx.restore();
 
         var fillColour;
         if (tank.power() <= 0.33) {
@@ -115,22 +122,9 @@ function TankRenderer(tank) {
         ctx.fillStyle = "000000";
         ctx.fillRect(tank.position().X() - 15, tank.position().Y() - 30, 30, 10);
         ctx.restore();
-
         ctx.save();
         ctx.fillStyle = fillColour;
         ctx.fillRect(tank.position().X() - 14, tank.position().Y() - 29, 28 * tank.power(), 8);
-        ctx.restore();
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.strokeStyle = "#00EE00";
-        var startX = tank.position().X() + (tank.aim().X() * 50);
-        var startY = tank.position().Y() + (tank.aim().Y() * 50);
-        ctx.moveTo(startX - 5, startY);
-        ctx.lineTo(startX + 5, startY);
-        ctx.moveTo(startX, startY - 5);
-        ctx.lineTo(startX, startY + 5);
-        ctx.stroke();
         ctx.restore();
 
         if (showFeelers) {
@@ -148,7 +142,62 @@ function TankRenderer(tank) {
 	
 }
 
-TankRenderer.prototype = new Renderable();
+PlayerTankRenderer.prototype = new Renderable();
+
+function EnemyTankRenderer(tank) {
+
+    var frame = 0;
+
+    this.render = function(ctx, imageLibrary) {
+        ctx.save();
+        ctx.translate(tank.position().X(), tank.position().Y());
+        ctx.rotate(angleFrom(tank.heading()));
+        var tankImgPos = imageLibrary.enemyImgPos;
+        var imgPos = (tank.velocity().length() >= 0 && tank.velocity().length() < 0.4) ? tankImgPos.length - 1 : frame % tankImgPos.length;
+        var img = tankImgPos[imgPos];
+        ctx.drawImage(imageLibrary.mainImg, img.x, img.y, img.w, img.h, -img.w/2, -img.h/2, img.w, img.h);
+        ctx.restore();
+        frame = (frame == tankImgPos.length - 1) ? 0 : frame + 1;
+
+        ctx.save();
+        ctx.translate(tank.position().X(), tank.position().Y());
+        ctx.rotate(angleFrom(tank.aim()));
+        ctx.drawImage(imageLibrary.enemyTurretImg, 0, 0, 32, 32, -16, -16, 32, 32);
+        ctx.restore();
+
+        var fillColour;
+        if (tank.power() <= 0.33) {
+            fillColour = "FF0000";
+        } else if (tank.power() <= 0.66) {
+            fillColour = "FFFF00";
+        } else {
+            fillColour = "00EE00";
+        }
+        ctx.save();
+        ctx.fillStyle = "000000";
+        ctx.fillRect(tank.position().X() - 15, tank.position().Y() - 30, 30, 10);
+        ctx.restore();
+        ctx.save();
+        ctx.fillStyle = fillColour;
+        ctx.fillRect(tank.position().X() - 14, tank.position().Y() - 29, 28 * tank.power(), 8);
+        ctx.restore();
+
+        if (showFeelers) {
+            ctx.save();
+            var feelers = createFeelersFor(tank);
+            feelers.forEach(function(feeler) {
+                ctx.beginPath();
+                ctx.moveTo(tank.position().X(), tank.position().Y());
+                ctx.lineTo(feeler.X(), feeler.Y());
+                ctx.stroke();
+            });
+            ctx.restore();
+        }
+    }
+
+}
+
+EnemyTankRenderer.prototype = new Renderable();
 
 function TrajectoryRenderer(tank) {
 
@@ -207,7 +256,7 @@ function ExplosionRenderer(explosions) {
 
     var frames = [{"x": 33, "y": 31}, {"x": 66, "y": 31}, {"x": 99, "y": 30}];
 
-    this.render = function(ctx, img) {
+    this.render = function(ctx, imageLibrary) {
         explosions.forEach(function(explosion) {
             var frame = explosion.currentFrame();
             ctx.save();
@@ -219,7 +268,7 @@ function ExplosionRenderer(explosions) {
             ctx.restore();
             ctx.save();
             ctx.translate(explosion.x, explosion.y);
-            ctx.drawImage(img, frames[frame].x, 33, frames[frame].y, 32, -16, -16, 33, 32);
+            ctx.drawImage(imageLibrary.mainImg, frames[frame].x, 33, frames[frame].y, 32, -16, -16, 33, 32);
             ctx.restore();
             explosion.finish(frames.length);
         });
@@ -228,7 +277,7 @@ function ExplosionRenderer(explosions) {
 
 function MissileRenderer(missiles) {
 
-    this.render = function(ctx, img) {
+    this.render = function(ctx, imageLibrary) {
         missiles.forEach(function(missile, idx) {
             ctx.save();
             ctx.translate(missile.position().X(), missile.position().Y());
@@ -239,9 +288,9 @@ function MissileRenderer(missiles) {
             var scaledImgX = imgX * scale;
             var scaledImgY = imgY * scale;
             if (missile.isBomblet()) {
-                ctx.drawImage(img, 277, 45, 7, 7, -scaledImgX / 2, -scaledImgY / 2, scaledImgX, scaledImgY);
+                ctx.drawImage(imageLibrary.mainImg, 277, 45, 7, 7, -scaledImgX / 2, -scaledImgY / 2, scaledImgX, scaledImgY);
             } else {
-                ctx.drawImage(img, 132, 33, 30, 30, -scaledImgX / 2, -scaledImgY / 2, scaledImgX, scaledImgY);
+                ctx.drawImage(imageLibrary.mainImg, 132, 33, 30, 30, -scaledImgX / 2, -scaledImgY / 2, scaledImgX, scaledImgY);
             }
             ctx.restore();
             ctx.save();

@@ -1,7 +1,36 @@
 function World(ctx) {
 
     var singleImage = new Image();
-    singleImage.src = 'images/tankbrigade.png';
+    singleImage.src = 'images/tankbrigade2.png';
+    var greenTurretImage = new Image();
+    greenTurretImage.src = 'images/green_turret.png';
+    var blueTurretImage = new Image();
+    blueTurretImage.src = 'images/blue_turret.png';
+    var imageLibrary = {
+        mainImg: singleImage,
+        playerTurretImg: greenTurretImage,
+        enemyTurretImg: blueTurretImage,
+        playerImgPos: [
+        { x: 726, y: 34, w: 31, h: 31 },
+        { x: 693, y: 34, w: 31, h: 31 },
+        { x: 660, y: 34, w: 31, h: 31 },
+        { x: 627, y: 34, w: 31, h: 31 },
+        { x: 594, y: 34, w: 31, h: 31 },
+        { x: 561, y: 34, w: 31, h: 31 },
+        { x: 528, y: 34, w: 31, h: 31 },
+        { x: 495, y: 34, w: 31, h: 31 }
+        ],
+        enemyImgPos: [
+            { x: 726, y: 330, w: 31, h: 31 },
+            { x: 693, y: 330, w: 31, h: 31 },
+            { x: 660, y: 330, w: 31, h: 31 },
+            { x: 627, y: 330, w: 31, h: 31 },
+            { x: 594, y: 330, w: 31, h: 31 },
+            { x: 561, y: 330, w: 31, h: 31 },
+            { x: 528, y: 330, w: 31, h: 31 },
+            { x: 594, y: 165, w: 31, h: 31 }
+        ]
+    };
     var missiles = [];
     var tanks = [];
     var explosions = [];
@@ -17,13 +46,13 @@ function World(ctx) {
     tanks.push(playerTank, enemyTank);
     playerTank.wallAvoidance();
     enemyTank.wander().wallAvoidance();
-    var playerTankRenderer = new TankRenderer(playerTank);
+    var playerTankRenderer = new PlayerTankRenderer(playerTank);
     var trajectoryRenderer = new TrajectoryRenderer(playerTank);
-    var enemyTankRenderer = new TankRenderer(enemyTank);
+    var enemyTankRenderer = new EnemyTankRenderer(enemyTank);
     var worldRenderer = new WorldRenderer(playerTank, craters);
     var missileRenderer = new MissileRenderer(missiles);
     var explosionRenderer = new ExplosionRenderer(explosions);
-    var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, singleImage,
+    var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, imageLibrary,
         [worldRenderer, trajectoryRenderer, playerTankRenderer, enemyTankRenderer, explosionRenderer, missileRenderer]);
 
     this.movePlayerTankTo = function(pos) {
