@@ -34,6 +34,16 @@ function pointToWorldSpace(tank, point) {
     return $V([x, y]);
 }
 
+function pointToLocalSpace(point, heading, side, position) {
+    var posX = -position.X();
+    var posY = -position.Y();
+
+    var x = (heading.X() * point.X()) + (heading.Y() * point.Y()) + posX;
+    var y = (side.X() * point.X()) + (side.Y() * point.Y()) + posY;
+
+    return $V([x, y]);
+}
+
 function createFeelersFor(entity) {
     var feelers = [];
 

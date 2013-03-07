@@ -25,7 +25,8 @@ function Steering(walls) {
     }
 
     var seek = function(entity) {
-        return seekPos.subtract(entity.position()).toUnitVector().multiply(entity.maxSpeed());
+        var desiredVelocity = seekPos.subtract(entity.position()).toUnitVector().multiply(entity.maxSpeed());
+        return desiredVelocity.subtract(entity.velocity());
     }
 
     var arrive = function(entity) {

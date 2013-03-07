@@ -58,23 +58,23 @@ function Tank(spec) {
 
     this.maxSpeed = function() {
         return maxSpeed;
-    },
+    }
 
     this.position = function() {
         return pos.dup();
-    },
+    }
 
     this.heading = function() {
         return head.dup();
-    },
+    }
 
     this.velocity = function() {
         return veloc.dup();
-    },
+    }
 
     this.firingAngle = function() {
         return cannon.elevation();
-    },
+    }
 
     this.firingVelocity = function() {
         return cannon.velocity();
@@ -86,7 +86,7 @@ function Tank(spec) {
 
     this.missiles = function() {
         return missileCapacity - missilesFired;
-    },
+    }
 
     this.angleTo = function(angleInDegrees) {
         cannon.angleTo(angleInDegrees);
@@ -95,7 +95,7 @@ function Tank(spec) {
 
     this.aim = function() {
         return cannon.aim();
-    },
+    }
 
     this.power = function() {
         return health;
@@ -103,13 +103,13 @@ function Tank(spec) {
 
     this.move = function() {
         pos = pos.setElements([pos.X() + 2, pos.Y()]);
-    },
+    }
 
     this.pointTo = function(h) {
         var target = $V([h.x, h.y]);
         var result = target.subtract(pos);
         head = result.toUnitVector();
-    },
+    }
 
     this.update = function() {
         var steeringForce = steering.calculate(this);
@@ -121,32 +121,33 @@ function Tank(spec) {
             head = veloc.toUnitVector();
         }
 
-        function restrictTurnRate(steeringForce) {
-            var angle = head.dot(head.add(steeringForce).toUnitVector());
-            if (angle < 0) {
-                return Vector.Zero(2);
-            } else if (angle > maxTurnRate) {
-                return steeringForce.multiply(maxTurnRate);
-            } else {
-                return steeringForce;
-            }
+    }
+
+    var restrictTurnRate = function(steeringForce) {
+        var angle = head.dot(head.add(steeringForce).toUnitVector());
+        if (angle < 0) {
+            return Vector.Zero(2);
+        } else if (angle > maxTurnRate) {
+            return steeringForce.multiply(maxTurnRate);
+        } else {
+            return steeringForce;
         }
-    },
+    }
 
     this.seekTo = function(pos) {
         steering.seekTo(pos);
         return this;
-    },
+    }
 
     this.arriveAt = function(pos) {
         steering.arriveAt(pos);
         return this;
-    },
+    }
 
     this.wander = function() {
         steering.wanderAround();
         return this;
-    },
+    }
 
     this.wallAvoidance = function() {
         steering.wallAvoidance();
@@ -155,7 +156,7 @@ function Tank(spec) {
 
     this.aimAt = function(mousePos) {
         cannon.aimAt($V([mousePos.x, mousePos.y]).subtract(pos));
-    },
+    }
 
     this.fire = function() {
         if (this.missiles() > 0) {
@@ -164,7 +165,7 @@ function Tank(spec) {
         } else {
             return null;
         }
-    },
+    }
 
     this.hit = function() {
         health = health - 0.25;
