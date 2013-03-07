@@ -45,7 +45,7 @@ function Cannon(spec) {
 function Tank(spec) {
 
     var maxSpeed = 3;
-    var maxTurnRate = 0.47
+    var maxTurnRate = 0.44; // 25 degrees
     var mass = 1;
 	var pos = $V([spec.posX, spec.posY]);
 	var head = $V([spec.headingX, spec.headingY]);
@@ -124,8 +124,19 @@ function Tank(spec) {
     }
 
     var restrictTurnRate = function(steeringForce) {
-        var angle = head.dot(head.add(steeringForce).toUnitVector());
+        var newHeading = head.add(steeringForce).toUnitVector();
+        var angle = head.dot(newHeading);
         if (angle < 0) {
+            var direction = Math.atan2(newHeading.Y(), newHeading.X());
+            if (direction > 0) {
+                //turn right
+                var adjustedHeading = head.rotate((Math.PI / 2 * 0.280), Vector.Zero(2));
+                return adjustedHeading.subtract(head).multiply(steeringForce.length());
+            } else {
+                //turn left
+                var adjustedHeading = head.rotate((Math.PI / 2 * 3.72), Vector.Zero(2));
+                return adjustedHeading.subtract(head).multiply(steeringForce.length());
+            }
             return Vector.Zero(2);
         } else if (angle > maxTurnRate) {
             return steeringForce.multiply(maxTurnRate);
