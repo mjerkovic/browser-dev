@@ -44,6 +44,7 @@ function Cannon(spec) {
 
 function Tank(spec) {
 
+    var rad = 16;
     var maxSpeed = 3;
     var maxTurnRate = 0.44; // 25 degrees
     var mass = 1;
@@ -101,8 +102,16 @@ function Tank(spec) {
         return health;
     }
 
+    this.radius = function() {
+        return rad;
+    }
+
     this.move = function() {
         pos = pos.setElements([pos.X() + 2, pos.Y()]);
+    }
+
+    this.intersects = function(entity) {
+        return pos.distanceFrom(entity.position()) <= (rad + entity.radius());
     }
 
     this.pointTo = function(h) {
