@@ -25,18 +25,18 @@ function Steering(walls) {
     }
 
     var seek = function(entity) {
-        var desiredVelocity = seekPos.subtract(entity.position()).toUnitVector().multiply(entity.maxSpeed());
-        return desiredVelocity.subtract(entity.velocity());
+        var desiredVelocity = seekPos.subtract(entity.position).toUnitVector().multiply(entity.maxSpeed);
+        return desiredVelocity.subtract(entity.velocity);
     }
 
     var arrive = function(entity) {
-        var toTarget = arrivePos.subtract(entity.position());
+        var toTarget = arrivePos.subtract(entity.position);
         var dist = toTarget.length();
         if (dist > 0) {
             var speed = dist / 20; // decel=3 * tweaker=20
-            speed = Math.min(speed, entity.maxSpeed());
+            speed = Math.min(speed, entity.maxSpeed);
             var desiredVelocity = toTarget.multiply(speed / dist);
-            return desiredVelocity.subtract(entity.velocity());
+            return desiredVelocity.subtract(entity.velocity);
         }
         return Vector.Zero(2);
 
@@ -46,7 +46,7 @@ function Steering(walls) {
         var wanderTarget = $V([random(), random()]).toUnitVector().multiply(10); // wander radius
         var targetLocal = wanderTarget.add($V([20, 0])); // wander distance
         var targetWorld = pointToWorldSpace(entity, targetLocal);
-        return targetWorld.subtract(entity.position());
+        return targetWorld.subtract(entity.position);
     }
 
     var wallAvoidance = function(entity) {
@@ -58,7 +58,7 @@ function Steering(walls) {
 
         for (var flr = 0; flr < feelers.length; flr++) {
             for (var wallIdx = 0; wallIdx < walls.length; wallIdx++) {
-                var intersection = lineIntersects(entity.position(), feelers[flr], walls[wallIdx].getFrom(), walls[wallIdx].getTo());
+                var intersection = lineIntersects(entity.position, feelers[flr], walls[wallIdx].getFrom(), walls[wallIdx].getTo());
                 if (intersection.intersects) {
                     if (intersection.distance < distanceToClosestIP) {
                         distanceToClosestIP = intersection.distance;

@@ -1,3 +1,111 @@
+var Unit = function(spec) {
+    this.radius = spec.radius || 16;
+    this.position = $V([spec.posX, spec.posY]);
+    this.heading = $V([spec.headingX, spec.headingY]);
+    this.health = 1;
+
+    this.intersects = function(entity) {
+        return this.position.distanceFrom(entity.position) <= (this.radius + entity.radius);
+    }
+
+    this.hit = function() {
+        this.health = this.health - 0.25;
+    }
+
+}
+
+MovableUnit = function(spec) {
+    Unit.call(this, spec);
+    this.maxSpeed = spec.maxSpeed || 3;
+    this.maxTurnRate = 0.44; // 25 degrees
+    this.mass = 1;
+    this.velocity = $V([0, 0]);
+    this.steering = spec.steering;
+
+    this.update = function() {
+        var steeringForce = this.steering.calculate(this);
+        steeringForce = this._restrictTurnRate(steeringForce);
+        var acceleration = steeringForce.dividedBy(this.mass);
+        this.velocity = this.velocity.add(acceleration).truncate(this.maxSpeed);
+        this.position = this.position.add(this.velocity);
+        if (steeringForce.modulus() > 0.000001) {
+            this.heading = this.velocity.toUnitVector();
+        }
+    }
+
+    this.seekTo = function(pos) {
+        this.steering.seekTo(pos);
+        return this;
+    }
+
+    this.arriveAt = function(pos) {
+        this.steering.arriveAt(pos);
+        return this;
+    }
+
+    this.wander = function() {
+        this.steering.wanderAround();
+        return this;
+    }
+
+    this.wallAvoidance = function() {
+        this.steering.wallAvoidance();
+        return this;
+    }
+
+    this._restrictTurnRate = function(steeringForce) {
+        var newHeading = this.heading.add(steeringForce).toUnitVector();
+        var angle = this.heading.dot(newHeading);
+        if (angle < 0) {
+            var direction = Math.atan2(newHeading.Y(), newHeading.X());
+            var turnAngle = (direction > 0) ? this.maxTurnRate : -this.maxTurnRate;
+            var adjustedHeading = this.heading.rotate(turnAngle, Vector.Zero(2));
+            return adjustedHeading.subtract(this.heading).multiply(steeringForce.length());
+        } else if (angle > this.maxTurnRate) {
+            return steeringForce.multiply(this.maxTurnRate);
+        } else {
+            return steeringForce;
+        }
+    }
+}
+
+MovableUnit.prototype = Object.create(Unit.prototype);
+
+var Tank = function(spec) {
+    MovableUnit.call(this, spec);
+    this.missileCapacity = spec.missiles || 6;
+    this.missilesFired = 0;
+    this.cannon = spec.cannon;
+
+    this.missiles = function() {
+        return this.missileCapacity - this.missilesFired;
+    }
+
+    this.elevateTo = function(angleInDegrees) {
+        this.cannon.elevateTo(angleInDegrees);
+    }
+
+    this.aim = function() {
+        return this.cannon.aim();
+    }
+
+    this.aimAt = function(mousePos) {
+        this.cannon.aimAt($V([mousePos.x, mousePos.y]).subtract(this.position));
+    }
+
+    this.fire = function() {
+        if (this.missiles() > 0) {
+            this.missilesFired++;
+            return this.cannon.fire(this.position);
+        } else {
+            return null;
+        }
+    }
+
+}
+
+Tank.prototype = Object.create(MovableUnit.prototype);
+
 function Cannon(spec) {
 
     var aimVector = $V([spec.headingX, spec.headingY]);
@@ -25,7 +133,7 @@ function Cannon(spec) {
         aimVector = pos.dup().toUnitVector()
     }
 
-    this.angleTo = function(angleInDegrees) {
+    this.elevateTo = function(angleInDegrees) {
         angle = Math.min(Math.max(0, angle + angleInDegrees), 90);
         rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 9.81);
     }
@@ -38,157 +146,6 @@ function Cannon(spec) {
             firingAngle: angle,
             velocity: veloc
         };
-    }
-
-}
-
-function Tank(spec) {
-
-    var rad = 16;
-    var maxSpeed = 3;
-    var maxTurnRate = 0.44; // 25 degrees
-    var mass = 1;
-	var pos = $V([spec.posX, spec.posY]);
-	var head = $V([spec.headingX, spec.headingY]);
-    var veloc = $V([0, 0]);
-    var steering = spec.steering;
-    var health = 1;
-    var missileCapacity = spec.missiles || 6;
-    var missilesFired = 0;
-    var cannon = spec.cannon;
-
-    this.maxSpeed = function() {
-        return maxSpeed;
-    }
-
-    this.position = function() {
-        return pos.dup();
-    }
-
-    this.heading = function() {
-        return head.dup();
-    }
-
-    this.velocity = function() {
-        return veloc.dup();
-    }
-
-    this.firingAngle = function() {
-        return cannon.elevation();
-    }
-
-    this.firingVelocity = function() {
-        return cannon.velocity();
-    }
-
-    this.firingRange = function() {
-        return cannon.range();
-    }
-
-    this.missiles = function() {
-        return missileCapacity - missilesFired;
-    }
-
-    this.angleTo = function(angleInDegrees) {
-        cannon.angleTo(angleInDegrees);
-        xstat.innerHTML = cannon.elevation();
-    }
-
-    this.aim = function() {
-        return cannon.aim();
-    }
-
-    this.power = function() {
-        return health;
-    }
-
-    this.radius = function() {
-        return rad;
-    }
-
-    this.move = function() {
-        pos = pos.setElements([pos.X() + 2, pos.Y()]);
-    }
-
-    this.intersects = function(entity) {
-        return pos.distanceFrom(entity.position()) <= (rad + entity.radius());
-    }
-
-    this.pointTo = function(h) {
-        var target = $V([h.x, h.y]);
-        var result = target.subtract(pos);
-        head = result.toUnitVector();
-    }
-
-    this.update = function() {
-        var steeringForce = steering.calculate(this);
-        steeringForce = restrictTurnRate(steeringForce);
-        var acceleration = steeringForce.dividedBy(mass);
-        veloc = veloc.add(acceleration).truncate(maxSpeed);
-        pos = pos.add(veloc);
-        if (steeringForce.modulus() > 0.000001) {
-            head = veloc.toUnitVector();
-        }
-
-    }
-
-    var restrictTurnRate = function(steeringForce) {
-        var newHeading = head.add(steeringForce).toUnitVector();
-        var angle = head.dot(newHeading);
-        if (angle < 0) {
-            var direction = Math.atan2(newHeading.Y(), newHeading.X());
-            if (direction > 0) {
-                //turn right
-                var adjustedHeading = head.rotate((Math.PI / 2 * 0.280), Vector.Zero(2));
-                return adjustedHeading.subtract(head).multiply(steeringForce.length());
-            } else {
-                //turn left
-                var adjustedHeading = head.rotate((Math.PI / 2 * 3.72), Vector.Zero(2));
-                return adjustedHeading.subtract(head).multiply(steeringForce.length());
-            }
-            return Vector.Zero(2);
-        } else if (angle > maxTurnRate) {
-            return steeringForce.multiply(maxTurnRate);
-        } else {
-            return steeringForce;
-        }
-    }
-
-    this.seekTo = function(pos) {
-        steering.seekTo(pos);
-        return this;
-    }
-
-    this.arriveAt = function(pos) {
-        steering.arriveAt(pos);
-        return this;
-    }
-
-    this.wander = function() {
-        steering.wanderAround();
-        return this;
-    }
-
-    this.wallAvoidance = function() {
-        steering.wallAvoidance();
-        return this;
-    }
-
-    this.aimAt = function(mousePos) {
-        cannon.aimAt($V([mousePos.x, mousePos.y]).subtract(pos));
-    }
-
-    this.fire = function() {
-        if (this.missiles() > 0) {
-            missilesFired++;
-            return cannon.fire(pos);
-        } else {
-            return null;
-        }
-    }
-
-    this.hit = function() {
-        health = health - 0.25;
     }
 
 }

@@ -41,8 +41,24 @@ function World(ctx) {
         new Wall($V([800, 0]), $V([800, 700])),
         new Wall($V([0, 700]), $V([800, 700]))
     ];
-    var playerTank = new Tank({posX: 400, posY: 400, headingX: 1, headingY: 0, missiles: 6, cannon: Armoury.simpleCannon(1, 0), steering: new Steering(walls)});
-    var enemyTank = new Tank({posX: 700, posY: 200, headingX: -0.7071, headingY: -0.7071, missiles: 6, cannon: Armoury.simpleCannon(-0,7071, -0,7071), steering: new Steering(walls)});
+    var playerTank = new Tank({
+        posX: 400,
+        posY: 400,
+        headingX: 1,
+        headingY: 0,
+        missiles: 6,
+        cannon: Armoury.simpleCannon(1, 0),
+        steering: new Steering(walls)
+    });
+    var enemyTank = new Tank({
+        posX: 700,
+        posY: 200,
+        headingX: -0.7071,
+        headingY: -0.7071,
+        missiles: 6,
+        cannon: Armoury.simpleCannon(-0,7071, -0,7071),
+        steering: new Steering(walls)
+    });
     tanks.push(playerTank, enemyTank);
     playerTank.wallAvoidance();
     enemyTank.wander().wallAvoidance();
@@ -60,7 +76,7 @@ function World(ctx) {
     },
 
     this.adjustFiringAngle = function(angleDelta) {
-        playerTank.angleTo(angleDelta);
+        playerTank.elevateTo(angleDelta);
     },
 
     this.fireMissile = function() {
@@ -92,7 +108,7 @@ function World(ctx) {
     var explosion = function(point) {
         craters.push(point);
         tanks.forEach(function(tank) {
-            if (tank.position().distanceFrom(point) < 50) {
+            if (tank.position.distanceFrom(point) < 50) {
                 tank.hit();
             }
         });

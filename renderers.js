@@ -60,7 +60,7 @@ function WorldRenderer(playerTank, craters) {
         ctx.strokeStyle = "FFFF00";
         ctx.strokeRect(BATTLEFIELD_WIDTH + 5, 0, 195, 102);
         ctx.translate(BATTLEFIELD_WIDTH + 5, 100);
-        var angleOfTurret = (Math.PI / 180) * -playerTank.firingAngle();
+        var angleOfTurret = (Math.PI / 180) * -playerTank.cannon.elevation();
         ctx.beginPath();
         ctx.arc(0, 0, 30, 0, angleOfTurret, true);
         ctx.stroke();
@@ -70,7 +70,7 @@ function WorldRenderer(playerTank, craters) {
         ctx.save();
         ctx.fillStyle = "yellow";
         ctx.font = "bold 48px Arial";
-        ctx.fillText(playerTank.firingAngle() + "\u00B0", BATTLEFIELD_WIDTH + 115, 65);
+        ctx.fillText(playerTank.cannon.elevation() + "\u00B0", BATTLEFIELD_WIDTH + 115, 65);
         ctx.restore();
     }
 
@@ -95,36 +95,36 @@ function PlayerTankRenderer(tank) {
 
 	this.render = function(ctx, imageLibrary) {
 		ctx.save();
-		ctx.translate(tank.position().X(), tank.position().Y());
-		ctx.rotate(angleFrom(tank.heading()));
+		ctx.translate(tank.position.X(), tank.position.Y());
+		ctx.rotate(angleFrom(tank.heading));
         var tankImgPos = imageLibrary.playerImgPos;
-        var imgPos = (tank.velocity().length() >= 0 && tank.velocity().length() < 0.4) ? tankImgPos.length - 1 : frame % tankImgPos.length;
+        var imgPos = (tank.velocity.length() >= 0 && tank.velocity.length() < 0.4) ? tankImgPos.length - 1 : frame % tankImgPos.length;
         var img = tankImgPos[imgPos];
         ctx.drawImage(imageLibrary.mainImg, img.x, img.y, img.w, img.h, -img.w/2, -img.h/2, img.w, img.h);
         ctx.restore();
         frame = (frame == tankImgPos.length - 1) ? 0 : frame + 1;
 
         ctx.save();
-        ctx.translate(tank.position().X(), tank.position().Y());
+        ctx.translate(tank.position.X(), tank.position.Y());
         ctx.rotate(angleFrom(tank.aim()));
         ctx.drawImage(imageLibrary.playerTurretImg, 0, 0, 32, 32, -16, -16, 32, 32);
         ctx.restore();
 
         var fillColour;
-        if (tank.power() <= 0.33) {
+        if (tank.health <= 0.33) {
             fillColour = "FF0000";
-        } else if (tank.power() <= 0.66) {
+        } else if (tank.health <= 0.66) {
             fillColour = "FFFF00";
         } else {
             fillColour = "00EE00";
         }
         ctx.save();
         ctx.fillStyle = "000000";
-        ctx.fillRect(tank.position().X() - 15, tank.position().Y() - 30, 30, 10);
+        ctx.fillRect(tank.position.X() - 15, tank.position.Y() - 30, 30, 10);
         ctx.restore();
         ctx.save();
         ctx.fillStyle = fillColour;
-        ctx.fillRect(tank.position().X() - 14, tank.position().Y() - 29, 28 * tank.power(), 8);
+        ctx.fillRect(tank.position.X() - 14, tank.position.Y() - 29, 28 * tank.health, 8);
         ctx.restore();
 
         if (showFeelers) {
@@ -132,7 +132,7 @@ function PlayerTankRenderer(tank) {
             var feelers = createFeelersFor(tank);
             feelers.forEach(function(feeler) {
                 ctx.beginPath();
-                ctx.moveTo(tank.position().X(), tank.position().Y());
+                ctx.moveTo(tank.position.X(), tank.position.Y());
                 ctx.lineTo(feeler.X(), feeler.Y());
                 ctx.stroke();
             });
@@ -150,36 +150,36 @@ function EnemyTankRenderer(tank) {
 
     this.render = function(ctx, imageLibrary) {
         ctx.save();
-        ctx.translate(tank.position().X(), tank.position().Y());
-        ctx.rotate(angleFrom(tank.heading()));
+        ctx.translate(tank.position.X(), tank.position.Y());
+        ctx.rotate(angleFrom(tank.heading));
         var tankImgPos = imageLibrary.enemyImgPos;
-        var imgPos = (tank.velocity().length() >= 0 && tank.velocity().length() < 0.4) ? tankImgPos.length - 1 : frame % tankImgPos.length;
+        var imgPos = (tank.velocity.length() >= 0 && tank.velocity.length() < 0.4) ? tankImgPos.length - 1 : frame % tankImgPos.length;
         var img = tankImgPos[imgPos];
         ctx.drawImage(imageLibrary.mainImg, img.x, img.y, img.w, img.h, -img.w/2, -img.h/2, img.w, img.h);
         ctx.restore();
         frame = (frame == tankImgPos.length - 1) ? 0 : frame + 1;
 
         ctx.save();
-        ctx.translate(tank.position().X(), tank.position().Y());
+        ctx.translate(tank.position.X(), tank.position.Y());
         ctx.rotate(angleFrom(tank.aim()));
         ctx.drawImage(imageLibrary.enemyTurretImg, 0, 0, 32, 32, -16, -16, 32, 32);
         ctx.restore();
 
         var fillColour;
-        if (tank.power() <= 0.33) {
+        if (tank.health <= 0.33) {
             fillColour = "FF0000";
-        } else if (tank.power() <= 0.66) {
+        } else if (tank.health <= 0.66) {
             fillColour = "FFFF00";
         } else {
             fillColour = "00EE00";
         }
         ctx.save();
         ctx.fillStyle = "000000";
-        ctx.fillRect(tank.position().X() - 15, tank.position().Y() - 30, 30, 10);
+        ctx.fillRect(tank.position.X() - 15, tank.position.Y() - 30, 30, 10);
         ctx.restore();
         ctx.save();
         ctx.fillStyle = fillColour;
-        ctx.fillRect(tank.position().X() - 14, tank.position().Y() - 29, 28 * tank.power(), 8);
+        ctx.fillRect(tank.position.X() - 14, tank.position.Y() - 29, 28 * tank.health, 8);
         ctx.restore();
 
         if (showFeelers) {
@@ -187,7 +187,7 @@ function EnemyTankRenderer(tank) {
             var feelers = createFeelersFor(tank);
             feelers.forEach(function(feeler) {
                 ctx.beginPath();
-                ctx.moveTo(tank.position().X(), tank.position().Y());
+                ctx.moveTo(tank.position.X(), tank.position.Y());
                 ctx.lineTo(feeler.X(), feeler.Y());
                 ctx.stroke();
             });
@@ -214,15 +214,17 @@ function TrajectoryRenderer(tank) {
         ctx.stroke();
         ctx.moveTo(0, 0);
 
-        var maxHeight = Trajectory.maxHeight(tank.firingVelocity(), tank.firingAngle());
-        var impactTime = Trajectory.impactTime(tank.firingVelocity(), tank.firingAngle());
-        var firingRange = tank.firingRange();
+        var firingVelocity = tank.cannon.velocity();
+        var elevation = tank.cannon.elevation();
+        var maxHeight = Trajectory.maxHeight(firingVelocity, elevation);
+        var impactTime = Trajectory.impactTime(firingVelocity, elevation);
+        var firingRange = tank.cannon.range();
         var scaleX = (firingRange > 200) ? 200 / firingRange : 1;
         var scaleY = (maxHeight > 200) ? 200 / maxHeight : 1;
         ctx.scale(scaleX, scaleY);
         impactTime = parseFloat(impactTime.toFixed(1));
-        var xVelocity = tank.firingVelocity() * Math.cos(toRadians(tank.firingAngle()));
-        var yVelocity = tank.firingVelocity() * Math.sin(toRadians(tank.firingAngle()));
+        var xVelocity = firingVelocity * Math.cos(toRadians(elevation));
+        var yVelocity = firingVelocity * Math.sin(toRadians(elevation));
         var xPos = 1;
         var yPos = 0;
         var maxX;
