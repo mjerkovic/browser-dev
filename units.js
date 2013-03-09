@@ -1,28 +1,116 @@
-var Unit = function(spec) {
-    this.radius = spec.radius || 16;
-    this.position = $V([spec.posX, spec.posY]);
-    this.heading = $V([spec.headingX, spec.headingY]);
-    this.health = 1;
+/* Simple JavaScript Inheritance
+ * By John Resig http://ejohn.org/
+ * MIT Licensed.
+ */
+// Inspired by base2 and Prototype
+(function(){
+    var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 
-    this.intersects = function(entity) {
+    // The base Class implementation (does nothing)
+    this.Class = function(){};
+
+    // Create a new Class that inherits from this class
+    Class.extend = function(prop) {
+        var _super = this.prototype;
+
+        // Instantiate a base class (but only create the instance,
+        // don't run the init constructor)
+        initializing = true;
+        var prototype = new this();
+        initializing = false;
+
+        // Copy the properties over onto the new prototype
+        for (var name in prop) {
+            // Check if we're overwriting an existing function
+            prototype[name] = typeof prop[name] == "function" &&
+                typeof _super[name] == "function" && fnTest.test(prop[name]) ?
+                (function(name, fn){
+                    return function() {
+                        var tmp = this._super;
+
+                        // Add a new ._super() method that is the same method
+                        // but on the super-class
+                        this._super = _super[name];
+
+                        // The method only need to be bound temporarily, so we
+                        // remove it when we're done executing
+                        var ret = fn.apply(this, arguments);
+                        this._super = tmp;
+
+                        return ret;
+                    };
+                })(name, prop[name]) :
+                prop[name];
+        }
+
+        // The dummy class constructor
+        function Class() {
+            // All construction is actually done in the init method
+            if ( !initializing && this.init )
+                this.init.apply(this, arguments);
+        }
+
+        // Populate our constructed prototype object
+        Class.prototype = prototype;
+
+        // Enforce the constructor to be what we expect
+        Class.prototype.constructor = Class;
+
+        // And make this class extendable
+        Class.extend = arguments.callee;
+
+        return Class;
+    };
+})();
+
+var Unit = Class.extend({
+    init: function(spec) {
+        this.radius = spec.radius || 16;
+        this.position = $V([spec.posX, spec.posY]);
+        this.heading = $V([spec.headingX, spec.headingY]);
+        this.health = 1;
+    },
+
+    intersects: function(entity) {
         return this.position.distanceFrom(entity.position) <= (this.radius + entity.radius);
-    }
+    },
 
-    this.hit = function() {
+    hit: function() {
         this.health = this.health - 0.25;
     }
+});
 
-}
+MovableUnit = Unit.extend({
+    init: function(spec) {
+        this._super(spec);
+        this.maxSpeed = spec.maxSpeed || 3;
+        this.maxTurnRate = 0.44; // 25 degrees
+        this.mass = 1;
+        this.velocity = $V([0, 0]);
+        this.steering = spec.steering;
+    },
 
-MovableUnit = function(spec) {
-    Unit.call(this, spec);
-    this.maxSpeed = spec.maxSpeed || 3;
-    this.maxTurnRate = 0.44; // 25 degrees
-    this.mass = 1;
-    this.velocity = $V([0, 0]);
-    this.steering = spec.steering;
+    seekTo: function(pos) {
+        this.steering.seekTo(pos);
+        return this;
+    },
 
-    this.update = function() {
+    arriveAt: function(pos) {
+        this.steering.arriveAt(pos);
+        return this;
+    },
+
+    wander: function() {
+        this.steering.wanderAround();
+        return this;
+    },
+
+    wallAvoidance: function() {
+        this.steering.wallAvoidance();
+        return this;
+    },
+
+    update: function() {
         var steeringForce = this.steering.calculate(this);
         steeringForce = this._restrictTurnRate(steeringForce);
         var acceleration = steeringForce.dividedBy(this.mass);
@@ -31,29 +119,9 @@ MovableUnit = function(spec) {
         if (steeringForce.modulus() > 0.000001) {
             this.heading = this.velocity.toUnitVector();
         }
-    }
+    },
 
-    this.seekTo = function(pos) {
-        this.steering.seekTo(pos);
-        return this;
-    }
-
-    this.arriveAt = function(pos) {
-        this.steering.arriveAt(pos);
-        return this;
-    }
-
-    this.wander = function() {
-        this.steering.wanderAround();
-        return this;
-    }
-
-    this.wallAvoidance = function() {
-        this.steering.wallAvoidance();
-        return this;
-    }
-
-    this._restrictTurnRate = function(steeringForce) {
+    _restrictTurnRate: function(steeringForce) {
         var newHeading = this.heading.add(steeringForce).toUnitVector();
         var angle = this.heading.dot(newHeading);
         if (angle < 0) {
@@ -67,44 +135,54 @@ MovableUnit = function(spec) {
             return steeringForce;
         }
     }
-}
 
-MovableUnit.prototype = Object.create(Unit.prototype);
+});
 
-var Tank = function(spec) {
-    MovableUnit.call(this, spec);
-    this.missileCapacity = spec.missiles || 6;
-    this.missilesFired = 0;
-    this.cannon = spec.cannon;
+var Tank = MovableUnit.extend({
+    init: function(spec) {
+        this._super(spec);
+        this.missileCapacity = spec.missiles || 6;
+        this.missilesFired = 0;
+        this.cannon = spec.cannon;
+    },
 
-    this.missiles = function() {
+    missiles: function() {
         return this.missileCapacity - this.missilesFired;
-    }
+    },
 
-    this.elevateTo = function(angleInDegrees) {
+    elevateTo: function(angleInDegrees) {
         this.cannon.elevateTo(angleInDegrees);
-    }
+    },
 
-    this.aim = function() {
+    aim: function() {
         return this.cannon.aim();
-    }
+    },
 
-    this.aimAt = function(mousePos) {
+    aimAt: function(mousePos) {
         this.cannon.aimAt($V([mousePos.x, mousePos.y]).subtract(this.position));
-    }
+    },
 
-    this.fire = function() {
+    fireMissile: function() {
         if (this.missiles() > 0) {
             this.missilesFired++;
-            return this.cannon.fire(this.position);
+            return this.cannon.fireMissile(this.position);
         } else {
             return null;
         }
     }
 
-}
+});
 
-Tank.prototype = Object.create(MovableUnit.prototype);
+var AutoTank = Tank.extend({
+    init: function(spec) {
+        this._super(spec);
+    },
+
+    update: function() {
+        this._super();
+        this.cannon.aimAt(this.heading);
+    }
+});
 
 function Cannon(spec) {
 
@@ -138,7 +216,7 @@ function Cannon(spec) {
         rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 9.81);
     }
 
-    this.fire = function(firingPosition) {
+    this.fireMissile = function(firingPosition) {
         return {
             position: { x: firingPosition.X() + ((Math.cos(toRadians(angle)) * aimVector.X()) * 20),
                 y: firingPosition.Y() + ((Math.sin(toRadians(angle)) * aimVector.Y()) * 20) },

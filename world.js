@@ -35,6 +35,8 @@ function World(ctx) {
     var tanks = [];
     var explosions = [];
     var craters = [];
+    var bulletsFired = [];
+    var vehicles = [];
     var walls = [
         new Wall($V([0, 0]), $V([800, 0])),
         new Wall($V([0, 0]), $V([0, 700])),
@@ -50,7 +52,7 @@ function World(ctx) {
         cannon: Armoury.simpleCannon(1, 0),
         steering: new Steering(walls)
     });
-    var enemyTank = new Tank({
+    var enemyTank = new AutoTank({
         posX: 700,
         posY: 200,
         headingX: -0.7071,
@@ -59,9 +61,10 @@ function World(ctx) {
         cannon: Armoury.simpleCannon(-0,7071, -0,7071),
         steering: new Steering(walls)
     });
-    tanks.push(playerTank, enemyTank);
+    tanks.push(enemyTank, playerTank);
     playerTank.wallAvoidance();
     enemyTank.wander().wallAvoidance();
+    vehicles.push(tanks);
     var playerTankRenderer = new PlayerTankRenderer(playerTank);
     var trajectoryRenderer = new TrajectoryRenderer(playerTank);
     var enemyTankRenderer = new EnemyTankRenderer(enemyTank);
@@ -80,7 +83,7 @@ function World(ctx) {
     },
 
     this.fireMissile = function() {
-        var firePos = playerTank.fire();
+        var firePos = playerTank.fireMissile();
         if (firePos) {
             var missile = (fireMirv) ? Armoury.mirvMissile(firePos, onImpact) : Armoury.missile(firePos, onImpact);
             missiles.push(missile);
