@@ -1,3 +1,7 @@
+Array.prototype.isEmpty = function() {
+    return this.length == 0;
+};
+
 function World(ctx) {
 
     var singleImage = new Image();
@@ -70,9 +74,11 @@ function World(ctx) {
     var enemyTankRenderer = new EnemyTankRenderer(enemyTank);
     var worldRenderer = new WorldRenderer(playerTank, craters);
     var missileRenderer = new MissileRenderer(missiles);
+    var bulletRenderer = new BulletRenderer(bulletsFired);
     var explosionRenderer = new ExplosionRenderer(explosions);
     var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, imageLibrary,
-        [worldRenderer, trajectoryRenderer, playerTankRenderer, enemyTankRenderer, explosionRenderer, missileRenderer]);
+        [worldRenderer, trajectoryRenderer, playerTankRenderer, enemyTankRenderer, bulletRenderer,
+            explosionRenderer, missileRenderer]);
 
     this.movePlayerTankTo = function(pos) {
         playerTank.arriveAt(pos);
@@ -82,11 +88,24 @@ function World(ctx) {
         playerTank.elevateTo(angleDelta);
     },
 
-    this.fireMissile = function() {
-        var firePos = playerTank.fireMissile();
-        if (firePos) {
-            var missile = (fireMirv) ? Armoury.mirvMissile(firePos, onImpact) : Armoury.missile(firePos, onImpact);
-            missiles.push(missile);
+    this.shootAt = function(pos) {
+        var targetPos = $V([pos.x, pos.y]);
+        var target = tanks.filter(function(tank) {
+            return tank != playerTank && tank.position.distanceFrom(targetPos) <= 50;
+        });
+        if (target.length == 1) {
+            var bullet = playerTank.shootAt(target.shift(), function(bullet) {
+                bulletsFired.splice(bulletsFired.indexOf(bullet), 1);
+            });
+            if (bullet) {
+                bulletsFired.push(bullet);
+            }
+        } else {
+            var firePos = playerTank.fireMissile();
+            if (firePos) {
+                var missile = (fireMirv) ? Armoury.mirvMissile(firePos, onImpact) : Armoury.missile(firePos, onImpact);
+                missiles.push(missile);
+            }
         }
     }
 
@@ -127,6 +146,9 @@ function World(ctx) {
         });
         missiles.forEach(function(entity) {
             entity.update();
+        });
+        bulletsFired.forEach(function(bullet) {
+            bullet.update();
         });
     },
 

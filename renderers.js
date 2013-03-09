@@ -308,6 +308,18 @@ function MissileRenderer(missiles) {
 
 MissileRenderer.prototype = new Renderable();
 
+function BulletRenderer(bullets) {
+
+    this.render = function(ctx, imageLibrary) {
+        bullets.forEach(function(bullet) {
+            ctx.save();
+            ctx.translate(bullet.position.X(), bullet.position.Y());
+            ctx.drawImage(imageLibrary.mainImg, 277, 45, 8, 8, -4, -4, 8, 8);
+            ctx.restore();
+        });
+    }
+}
+
 //0.39 rad = 22.5 degrees
 var Compass = {
     directions:  [

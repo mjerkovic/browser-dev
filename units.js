@@ -66,13 +66,19 @@
 var Unit = Class.extend({
     init: function(spec) {
         this.radius = spec.radius || 16;
-        this.position = $V([spec.posX, spec.posY]);
-        this.heading = $V([spec.headingX, spec.headingY]);
+        this.position = spec.position || $V([spec.posX, spec.posY]);
+        this.heading = spec.heading || $V([spec.headingX, spec.headingY]);
         this.health = 1;
     },
 
     intersects: function(entity) {
         return this.position.distanceFrom(entity.position) <= (this.radius + entity.radius);
+    },
+
+    intersectsPoint: function(point) {
+        var distance = this.position.distanceFrom(point);
+        console.log(distance);
+        return distance <= this.radius;
     },
 
     hit: function() {
@@ -86,7 +92,7 @@ MovableUnit = Unit.extend({
         this.maxSpeed = spec.maxSpeed || 3;
         this.maxTurnRate = 0.44; // 25 degrees
         this.mass = 1;
-        this.velocity = $V([0, 0]);
+        this.velocity = spec.velocity || $V([0, 0]);
         this.steering = spec.steering;
     },
 
@@ -169,6 +175,16 @@ var Tank = MovableUnit.extend({
         } else {
             return null;
         }
+    },
+
+    shootAt: function(target, completed) {
+        var toTarget = target.position.subtract(this.position).toUnitVector();
+        return (Math.abs(this.heading.dot(toTarget)) <= 1) ? new Bullet({ // 0.17
+            target: target,
+            position: this.position,
+            heading: this.heading,
+            completed: completed
+        }) : null;
     }
 
 });
@@ -181,6 +197,31 @@ var AutoTank = Tank.extend({
     update: function() {
         this._super();
         this.cannon.aimAt(this.heading);
+    }
+});
+
+var Bullet = MovableUnit.extend({
+    init: function(spec) {
+        spec.velocity = spec.heading.multiply(9);
+        spec.maxSpeed = 9;
+        spec.radius = 3;
+        this._super(spec);
+        this.target = spec.target;
+        this.startingPosition = spec.position;
+        this.completed = spec.completed;
+        this.range = 300;
+    },
+
+    update: function() {
+        if (this.target.intersects(this)) {
+            this.target.hit();
+            this.completed(this);
+        }
+        else if (this.position.subtract(this.startingPosition).length() > this.range) {
+            this.completed(this);
+        } else {
+            this.position = this.position.add(this.velocity);
+        }
     }
 });
 

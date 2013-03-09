@@ -5,16 +5,20 @@ function startGame() {
     canvas.addEventListener('mousedown', function(ev) {
         var pos = posFromMouseEvent(ev);
         ev.preventDefault();
-        fireMirv = ev.ctrlKey;
         switch (ev.which) {
             case 1: world.movePlayerTankTo(pos);
                 break;
-            case 3: world.fireMissile();
+            case 3: {
+                console.log("Shoo!");
+                world.shootAt(pos);
                 break;
+            }
         }
+        fireMirv = ev.ctrlKey;
         return false;
     }, false);
     canvas.addEventListener('mousemove', function(ev) {
+        ev.preventDefault();
         world.aimAt(posFromMouseEvent(ev));
     }, false);
     canvas.addEventListener('contextmenu', function(ev) {
