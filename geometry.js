@@ -35,11 +35,11 @@ function pointToWorldSpace(tank, point) {
 }
 
 function pointToLocalSpace(point, heading, side, position) {
-    var posX = -position.X();
-    var posY = -position.Y();
+    var pointX = point.X() - position.X();
+    var pointY = point.Y() - position.Y();
 
-    var x = (heading.X() * point.X()) + (heading.Y() * point.Y()) + posX;
-    var y = (side.X() * point.X()) + (side.Y() * point.Y()) + posY;
+    var x = (heading.X() * pointX) + (heading.Y() * pointY);
+    var y = (side.X() * pointX) + (side.Y() * pointY);
 
     return $V([x, y]);
 }

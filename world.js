@@ -71,7 +71,7 @@ function World(ctx) {
     tanks.push(enemyTank, playerTank);
     playerTank.wallAvoidance();
     enemyTank.wander().wallAvoidance();
-    vehicles.push(tanks);
+    vehicles = vehicles.concat(tanks);
     var playerHeadQuarters = new HeadQuarters({
         posX: 48,
         posY: 48,
@@ -91,6 +91,7 @@ function World(ctx) {
 
     });
     var tankers = [playerTanker];
+    vehicles = vehicles.concat(tankers);
     var playerTankRenderer = new PlayerTankRenderer(playerTank);
     var trajectoryRenderer = new TrajectoryRenderer(playerTank);
     var enemyTankRenderer = new EnemyTankRenderer(enemyTank);
@@ -110,13 +111,20 @@ function World(ctx) {
 
     this.performAction = function(pos) {
         var targetPos = $V([pos.x, pos.y]);
-        var targets = tanks.filter(function(tank) {
-            return tank != playerTank && tank.intersectsPoint(targetPos);
+        var targets = vehicles.filter(function(vehicle) {
+            return vehicle != playerTank && vehicle.intersectsPoint(targetPos);
         });
         if (targets.length == 1) {
             var target = targets.shift();
             if (playerTank.shootAt(target)) {
-                var bullet = Armoury.bullet(playerTank, target, function(bullet, hit) {
+                var bullet = Armoury.bullet(playerTank, target, function(bullet) {
+                    for (var i=0; i < vehicles.length; i++) {
+                        if (vehicles[i] != bullet.firedBy && vehicles[i].intersects(bullet)) {
+                            return vehicles[i];
+                        }
+                    }
+                    return null;
+                }, function(bullet, hit) {
                     bulletsFired.splice(bulletsFired.indexOf(bullet), 1);
                     if (hit) {
                         createExplosion(bullet.position, false);
@@ -227,12 +235,13 @@ var Armoury = {
         }, callback);
     },
 
-    bullet: function(firedBy, firedAt, onCompletion) {
+    bullet: function(firedBy, firedAt, hitTest, onCompletion) {
         return new Bullet({
             firedBy: firedBy,
             target: firedAt,
             position: firedBy.position,
             heading: firedBy.heading,
+            hitTest: hitTest,
             completed: onCompletion
         });
     }

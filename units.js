@@ -208,11 +208,13 @@ var Bullet = MovableUnit.extend({
         this.startingPosition = spec.position;
         this.completed = spec.completed;
         this.range = 300;
+        this.hitTest = spec.hitTest;
     },
 
     update: function() {
-        if (this.target.intersects(this)) {
-            this.target.hit();
+        var victim = this.hitTest(this);
+        if (victim) {
+            victim.hit();
             this.completed(this, true);
         }
         else if (this.position.subtract(this.startingPosition).length() > this.range) {
@@ -401,10 +403,10 @@ var Tanker = MovableUnit.extend({
     intersectsPoint: function(point) {
         var localPoint = pointToLocalSpace(point, this.heading, this.side, this.position);
         return (
-            localPoint.X() >= this.position.X() - (this.length / 2) &&
-            localPoint.X() <= this.position.X() + (this.length / 2) &&
-            localPoint.Y() >= this.position.Y() - (this.width / 2) &&
-            localPoint.Y() <= this.position.Y() + (this.width / 2)
+            localPoint.X() >= -(this.length / 2) &&
+            localPoint.X() <= (this.length / 2) &&
+            localPoint.Y() >= -(this.width / 2) &&
+            localPoint.Y() <= (this.width / 2)
         );
     }
 });
