@@ -179,12 +179,7 @@ var Tank = MovableUnit.extend({
 
     shootAt: function(target, completed) {
         var toTarget = target.position.subtract(this.position).toUnitVector();
-        return (Math.abs(this.heading.dot(toTarget)) <= 1) ? new Bullet({ // 0.17
-            target: target,
-            position: this.position,
-            heading: this.heading,
-            completed: completed
-        }) : null;
+        return Math.abs(this.heading.dot(toTarget)) <= 1;
     }
 
 });
@@ -202,11 +197,12 @@ var AutoTank = Tank.extend({
 
 var Bullet = MovableUnit.extend({
     init: function(spec) {
+        this.firedBy = spec.firedBy;
+        this.target = spec.target;
         spec.velocity = spec.heading.multiply(9);
         spec.maxSpeed = 9;
         spec.radius = 3;
         this._super(spec);
-        this.target = spec.target;
         this.startingPosition = spec.position;
         this.completed = spec.completed;
         this.range = 300;

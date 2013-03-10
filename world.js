@@ -94,17 +94,18 @@ function World(ctx) {
 
     this.performAction = function(pos) {
         var targetPos = $V([pos.x, pos.y]);
-        var target = tanks.filter(function(tank) {
+        var targets = tanks.filter(function(tank) {
             return tank != playerTank && tank.intersectsPoint(targetPos);
         });
-        if (target.length == 1) {
-            var bullet = playerTank.shootAt(target.shift(), function(bullet, hit) {
-                bulletsFired.splice(bulletsFired.indexOf(bullet), 1);
-                if (hit) {
-                    createExplosion(bullet.position, false);
-                }
-            });
-            if (bullet) {
+        if (targets.length == 1) {
+            var target = targets.shift();
+            if (playerTank.shootAt(target)) {
+                var bullet = Armoury.bullet(playerTank, target, function(bullet, hit) {
+                    bulletsFired.splice(bulletsFired.indexOf(bullet), 1);
+                    if (hit) {
+                        createExplosion(bullet.position, false);
+                    }
+                });
                 bulletsFired.push(bullet);
             }
         } else {
@@ -208,5 +209,15 @@ var Armoury = {
             maxHeight: missile.maxHeight(),
             bomblet: true
         }, callback);
+    },
+
+    bullet: function(firedBy, firedAt, onCompletion) {
+        return new Bullet({
+            firedBy: firedBy,
+            target: firedAt,
+            position: firedBy.position,
+            heading: firedBy.heading,
+            completed: onCompletion
+        });
     }
 }
