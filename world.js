@@ -43,9 +43,9 @@ function World(ctx) {
     var vehicles = [];
     var walls = [
         new Wall($V([0, 0]), $V([800, 0])),
-        new Wall($V([0, 0]), $V([0, 700])),
         new Wall($V([800, 0]), $V([800, 700])),
-        new Wall($V([0, 700]), $V([800, 700]))
+        new Wall($V([800, 700]), $V([0, 700])),
+        new Wall($V([0, 700]), $V([0, 0]))
     ];
     var playerTank = new Tank({
         posX: 400,
@@ -69,6 +69,13 @@ function World(ctx) {
     playerTank.wallAvoidance();
     enemyTank.wander().wallAvoidance();
     vehicles.push(tanks);
+    var playerHeadQuarters = new HeadQuarters({
+        posX: 48,
+        posY: 48,
+        radius: 48
+    });
+    var headquarters = [playerHeadQuarters];
+
     var playerTankRenderer = new PlayerTankRenderer(playerTank);
     var trajectoryRenderer = new TrajectoryRenderer(playerTank);
     var enemyTankRenderer = new EnemyTankRenderer(enemyTank);
@@ -76,36 +83,45 @@ function World(ctx) {
     var missileRenderer = new MissileRenderer(missiles);
     var bulletRenderer = new BulletRenderer(bulletsFired);
     var explosionRenderer = new ExplosionRenderer(explosions);
+    var headQuartersRenderer = new HeadQuartersRenderer(headquarters);
     var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, imageLibrary,
-        [worldRenderer, trajectoryRenderer, playerTankRenderer, enemyTankRenderer, bulletRenderer,
+        [worldRenderer, headQuartersRenderer, trajectoryRenderer, playerTankRenderer, enemyTankRenderer, bulletRenderer,
             explosionRenderer, missileRenderer]);
 
     this.movePlayerTankTo = function(pos) {
         playerTank.arriveAt(pos);
-    },
+    }
 
-    this.adjustFiringAngle = function(angleDelta) {
-        playerTank.elevateTo(angleDelta);
-    },
-
-    this.shootAt = function(pos) {
+    this.performAction = function(pos) {
         var targetPos = $V([pos.x, pos.y]);
         var target = tanks.filter(function(tank) {
-            return tank != playerTank && tank.position.distanceFrom(targetPos) <= 50;
+            return tank != playerTank && tank.intersectsPoint(targetPos);
         });
         if (target.length == 1) {
-            var bullet = playerTank.shootAt(target.shift(), function(bullet) {
+            var bullet = playerTank.shootAt(target.shift(), function(bullet, hit) {
                 bulletsFired.splice(bulletsFired.indexOf(bullet), 1);
+                if (hit) {
+                    createExplosion(bullet.position, false);
+                }
             });
             if (bullet) {
                 bulletsFired.push(bullet);
             }
         } else {
-            var firePos = playerTank.fireMissile();
-            if (firePos) {
-                var missile = (fireMirv) ? Armoury.mirvMissile(firePos, onImpact) : Armoury.missile(firePos, onImpact);
-                missiles.push(missile);
-            }
+            this.movePlayerTankTo(pos);
+        }
+
+    }
+
+    this.adjustFiringAngle = function(angleDelta) {
+        playerTank.elevateTo(angleDelta);
+    }
+
+    this.fireMissile = function(pos) {
+        var firePos = playerTank.fireMissile();
+        if (firePos) {
+            var missile = (fireMirv) ? Armoury.mirvMissile(firePos, onImpact) : Armoury.missile(firePos, onImpact);
+            missiles.push(missile);
         }
     }
 
@@ -120,11 +136,16 @@ function World(ctx) {
                 Armoury.rainMissile(miss, miss.heading().rotate((Math.PI / 2) * 3.5, Vector.Zero(2)), onImpact)
             );
         } else {
-            explosions.push(new Explosion(miss.position(), function(exp) {
-                explosions.splice(explosions.indexOf(exp), 1);
-            }));
+            createExplosion(miss.position(), true);
             explosion(miss.position());
         }
+    }
+
+
+    var createExplosion = function(position, showBlastRange) {
+        explosions.push(new Explosion(position, showBlastRange, function(exp) {
+            explosions.splice(explosions.indexOf(exp), 1);
+        }));
     }
 
     var explosion = function(point) {
@@ -138,7 +159,7 @@ function World(ctx) {
 
     this.aimAt = function(pos) {
         playerTank.aimAt(pos);
-    },
+    }
 
     this.update = function() {
         tanks.forEach(function(entity) {
@@ -150,7 +171,7 @@ function World(ctx) {
         bulletsFired.forEach(function(bullet) {
             bullet.update();
         });
-    },
+    }
 
     this.render = function() {
         gameRenderer.render();

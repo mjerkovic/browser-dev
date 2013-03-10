@@ -261,13 +261,15 @@ function ExplosionRenderer(explosions) {
     this.render = function(ctx, imageLibrary) {
         explosions.forEach(function(explosion) {
             var frame = explosion.currentFrame();
-            ctx.save();
-            ctx.fillStyle = "FF0000";
-            ctx.globalAlpha = 0.2;
-            ctx.beginPath();
-            ctx.arc(explosion.x, explosion.y, 50, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
+            if (explosion.blastRange) {
+                ctx.save();
+                ctx.fillStyle = "FF0000";
+                ctx.globalAlpha = 0.2;
+                ctx.beginPath();
+                ctx.arc(explosion.x, explosion.y, 50, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
             ctx.save();
             ctx.translate(explosion.x, explosion.y);
             ctx.drawImage(imageLibrary.mainImg, frames[frame].x, 33, frames[frame].y, 32, -16, -16, 33, 32);
@@ -318,6 +320,24 @@ function BulletRenderer(bullets) {
             ctx.restore();
         });
     }
+}
+
+function HeadQuartersRenderer(headquarters) {
+
+    this.render = function(ctx, imageLibrary) {
+        headquarters.forEach(function(hq) {
+            var numTiles = Math.ceil((hq.radius * 2) / 32);
+            ctx.save();
+            ctx.translate(hq.position.X() - hq.radius, hq.position.Y() - hq.radius);
+            for (var y = 0; y < numTiles; y++) {
+                for (var x = 0; x < numTiles; x++) {
+                    ctx.drawImage(imageLibrary.mainImg, 132, 66, 32, 32, x * 32, y * 32, 32, 32);
+                }
+            }
+            ctx.restore();
+        });
+    }
+
 }
 
 //0.39 rad = 22.5 degrees

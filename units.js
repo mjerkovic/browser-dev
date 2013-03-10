@@ -82,7 +82,7 @@ var Unit = Class.extend({
     },
 
     hit: function() {
-        this.health = this.health - 0.25;
+        this.health = Math.max(0, this.health - 0.25);
     }
 });
 
@@ -90,7 +90,7 @@ MovableUnit = Unit.extend({
     init: function(spec) {
         this._super(spec);
         this.maxSpeed = spec.maxSpeed || 3;
-        this.maxTurnRate = 0.44; // 25 degrees
+        this.maxTurnRate = 1.57 / FRAMES_PER_SECOND; // 90 degrees per second
         this.mass = 1;
         this.velocity = spec.velocity || $V([0, 0]);
         this.steering = spec.steering;
@@ -215,10 +215,10 @@ var Bullet = MovableUnit.extend({
     update: function() {
         if (this.target.intersects(this)) {
             this.target.hit();
-            this.completed(this);
+            this.completed(this, true);
         }
         else if (this.position.subtract(this.startingPosition).length() > this.range) {
-            this.completed(this);
+            this.completed(this, false);
         } else {
             this.position = this.position.add(this.velocity);
         }
@@ -348,9 +348,10 @@ function Missile(spec, callback) {
     }
 }
 
-function Explosion(pos, endFunction) {
+function Explosion(pos, showBlastRange, endFunction) {
     this.x = pos.X();
     this.y = pos.Y();
+    this.blastRange = showBlastRange;
     var frame = 0;
 
     this.currentFrame = function() {
@@ -365,3 +366,9 @@ function Explosion(pos, endFunction) {
     }
 
 }
+
+var HeadQuarters = Unit.extend({
+    init: function(spec) {
+        this._super(spec);
+    }
+});

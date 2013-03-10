@@ -1,16 +1,21 @@
+var FRAMES_PER_SECOND = 10;
+
 function startGame() {
     var canvas = document.getElementById("canvas");
     var ctx = canvas.getContext("2d");
     var world = new World(ctx);
     canvas.addEventListener('mousedown', function(ev) {
-        var pos = posFromMouseEvent(ev);
         ev.preventDefault();
+        var pos = posFromMouseEvent(ev);
         switch (ev.which) {
-            case 1: world.movePlayerTankTo(pos);
+            case 1: {
+                world.performAction(pos);
+                console.log("Shoot 1");
                 break;
+            }
             case 3: {
-                console.log("Shoo!");
-                world.shootAt(pos);
+                console.log("Shoot 3");
+                world.fireMissile(pos);
                 break;
             }
         }
@@ -37,7 +42,7 @@ function startGame() {
 	setInterval(function() {
 		world.update();
 		world.render();
-	}, 100);
+	}, 1000 / FRAMES_PER_SECOND);
 }
 
 var fireMirv = false;
