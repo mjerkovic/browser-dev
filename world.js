@@ -10,10 +10,13 @@ function World(ctx) {
     greenTurretImage.src = 'images/green_turret.png';
     var blueTurretImage = new Image();
     blueTurretImage.src = 'images/blue_turret.png';
+    var tankerImage = new Image();
+    tankerImage.src = 'images/vehicles.png';
     var imageLibrary = {
         mainImg: singleImage,
         playerTurretImg: greenTurretImage,
         enemyTurretImg: blueTurretImage,
+        tankerImg: tankerImage,
         playerImgPos: [
         { x: 726, y: 34, w: 31, h: 31 },
         { x: 693, y: 34, w: 31, h: 31 },
@@ -75,7 +78,19 @@ function World(ctx) {
         radius: 48
     });
     var headquarters = [playerHeadQuarters];
+    var playerTanker= new Tanker({
+        posX: 120,
+        posY: 40,
+        headingX: 0,
+        headingY: 1,
+        steering: new Steering(walls),
+        width: 30,
+        length: 60,
+        capacity: 10,
+        transferRate: 1
 
+    });
+    var tankers = [playerTanker];
     var playerTankRenderer = new PlayerTankRenderer(playerTank);
     var trajectoryRenderer = new TrajectoryRenderer(playerTank);
     var enemyTankRenderer = new EnemyTankRenderer(enemyTank);
@@ -84,9 +99,10 @@ function World(ctx) {
     var bulletRenderer = new BulletRenderer(bulletsFired);
     var explosionRenderer = new ExplosionRenderer(explosions);
     var headQuartersRenderer = new HeadQuartersRenderer(headquarters);
+    var tankerRenderer = new TankerRenderer(tankers);
     var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, imageLibrary,
-        [worldRenderer, headQuartersRenderer, trajectoryRenderer, playerTankRenderer, enemyTankRenderer, bulletRenderer,
-            explosionRenderer, missileRenderer]);
+        [worldRenderer, headQuartersRenderer, trajectoryRenderer, playerTankRenderer, enemyTankRenderer, tankerRenderer,
+            bulletRenderer, explosionRenderer, missileRenderer]);
 
     this.movePlayerTankTo = function(pos) {
         playerTank.arriveAt(pos);

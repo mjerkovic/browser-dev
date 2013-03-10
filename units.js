@@ -68,6 +68,7 @@ var Unit = Class.extend({
         this.radius = spec.radius || 16;
         this.position = spec.position || $V([spec.posX, spec.posY]);
         this.heading = spec.heading || $V([spec.headingX, spec.headingY]);
+        this.side = this.heading.perp();
         this.health = 1;
     },
 
@@ -124,6 +125,7 @@ MovableUnit = Unit.extend({
         this.position = this.position.add(this.velocity);
         if (steeringForce.modulus() > 0.000001) {
             this.heading = this.velocity.toUnitVector();
+            this.side = this.heading.perp();
         }
     },
 
@@ -366,5 +368,43 @@ function Explosion(pos, showBlastRange, endFunction) {
 var HeadQuarters = Unit.extend({
     init: function(spec) {
         this._super(spec);
+    }
+});
+
+var Tanker = MovableUnit.extend({
+    init: function(spec) {
+        this._super(spec);
+        this.width = spec.width;
+        this.length = spec.length;
+        this.capacity = spec.capacity;
+        this.transferRate = spec.transferRate / FRAMES_PER_SECOND;
+    },
+
+    intersects: function(entity) {
+        var entityLocal = pointToLocalSpace(entity.position, this.heading, this.side, this.position);
+        var ax1 = -this.length / 2;
+        var ay1 = -this.width / 2
+        var ax2 = this.length / 2;
+        var ay2 = this.width / 2;
+        var bx1 = entityLocal.X() - entity.radius / 2;
+        var by1 = entityLocal.Y() - entity.radius / 2;
+        var bx2 = entityLocal.X() + entity.radius / 2;
+        var by2 = entityLocal.Y() + entity.radius  / 2;
+        return (
+            ax1 <= bx2 &&
+            bx1 <= ax2 &&
+            ay1 <= by2 &&
+            by1 <= ay2
+        );
+    },
+
+    intersectsPoint: function(point) {
+        var localPoint = pointToLocalSpace(point, this.heading, this.side, this.position);
+        return (
+            localPoint.X() >= this.position.X() - (this.length / 2) &&
+            localPoint.X() <= this.position.X() + (this.length / 2) &&
+            localPoint.Y() >= this.position.Y() - (this.width / 2) &&
+            localPoint.Y() <= this.position.Y() + (this.width / 2)
+        );
     }
 });

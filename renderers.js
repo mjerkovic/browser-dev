@@ -340,6 +340,21 @@ function HeadQuartersRenderer(headquarters) {
 
 }
 
+function TankerRenderer(tankers) {
+
+    this.render = function(ctx, imageLibrary) {
+        tankers.forEach(function(tanker) {
+            ctx.save();
+            ctx.translate(tanker.position.X(), tanker.position.Y());
+            ctx.rotate(angleFrom(tanker.heading));
+            ctx.drawImage(imageLibrary.tankerImg, 220, 6, 20, 40, -tanker.width / 2, -tanker.length / 2, 30, 60);
+            ctx.restore();
+        });
+    }
+
+}
+TankerRenderer.prototype = new Renderable();
+
 //0.39 rad = 22.5 degrees
 var Compass = {
     directions:  [
