@@ -102,8 +102,18 @@ MovableUnit = Unit.extend({
         return this;
     },
 
+    seekOff: function() {
+        this.steering.seekOff();
+        return this;
+    },
+
     arriveAt: function(pos) {
         this.steering.arriveAt(pos);
+        return this;
+    },
+
+    arriveOff: function() {
+        this.steering.arriveOff();
         return this;
     },
 
@@ -373,6 +383,26 @@ var HeadQuarters = Unit.extend({
     }
 });
 
+var Mine = Unit.extend({
+    init: function(spec) {
+        this._super(spec);
+        this.tonnes = spec.tonnes;
+        this.bays = spec.bays;
+    },
+
+    requestBay: function() {
+        var availableBays = this.bays.filter(function(bay) {
+            return bay.reserved == false;
+        });
+        if (availableBays.isEmpty()) {
+            return null;
+        } else {
+            availableBays[0].reserved = true;
+            return availableBays[0];
+        }
+    }
+});
+
 var Tanker = MovableUnit.extend({
     init: function(spec) {
         this._super(spec);
@@ -380,6 +410,14 @@ var Tanker = MovableUnit.extend({
         this.length = spec.length;
         this.capacity = spec.capacity;
         this.transferRate = spec.transferRate / FRAMES_PER_SECOND;
+        this.loadingBay;
+        this.goal = spec.goal;
+        this.load = 0;
+    },
+
+    update: function() {
+        this.goal.process(this);
+        this._super();
     },
 
     intersects: function(entity) {
@@ -408,5 +446,41 @@ var Tanker = MovableUnit.extend({
             localPoint.Y() >= -(this.width / 2) &&
             localPoint.Y() <= (this.width / 2)
         );
+    },
+
+    assignBay: function(bay) {
+        bay.reserved = true;
+        this.loadingBay = bay;
+    }
+});
+
+var Army = Class.extend({
+
+    init: function(spec) {
+        this.hq =  spec.hq;
+        this.mines = spec.mines;
+        this.tanks =  spec.tanks;
+        this.tankers = spec.tankers;
+    },
+
+    update: function() {
+        this.tanks.forEach(function(tank) {
+            tank.update();
+        });
+        this.tankers.forEach(function(tanker) {
+            tanker.update();
+        });
+    },
+
+    getClosestMine: function(point) {
+        var closestMine = { distance: 99999999, mine: null };
+        this.mines.forEach(function(mine) {
+            var distanceToMine = point.distanceFrom(mine);
+            if (distanceToMine < closestMine.distance) {
+                closestMine.distance = distanceToMine;
+                closestMine.mine = mine;
+            }
+        });
+        return closestMine.mine;
     }
 });

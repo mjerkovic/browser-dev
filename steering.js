@@ -89,7 +89,7 @@ function Steering(walls) {
         arriveOn = true;
     },
 
-    this.arriveOff = function(pos) {
+    this.arriveOff = function() {
         arriveOn = false;
     },
 

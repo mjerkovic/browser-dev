@@ -340,6 +340,24 @@ function HeadQuartersRenderer(headquarters) {
 
 }
 
+function MineRenderer(mines) {
+
+    this.render = function(ctx, imageLibrary) {
+        mines.forEach(function(mine) {
+            var numTiles = Math.ceil((mine.radius * 2) / 30);
+            ctx.save();
+            ctx.translate(mine.position.X() - mine.radius, mine.position.Y() - mine.radius);
+            for (var y = 0; y < numTiles; y++) {
+                for (var x = 0; x < numTiles; x++) {
+                    ctx.drawImage(imageLibrary.mainImg, 100, 166, 29, 30, x * 29, y * 30, 29, 30);
+                }
+            }
+            ctx.restore();
+        });
+    }
+
+}
+
 function TankerRenderer(tankers) {
 
     this.render = function(ctx, imageLibrary) {

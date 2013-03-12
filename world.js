@@ -2,6 +2,10 @@ Array.prototype.isEmpty = function() {
     return this.length == 0;
 };
 
+Array.prototype.peek = function() {
+    return  this.isEmpty() ? null : this[0];
+}
+
 function World(ctx) {
 
     var singleImage = new Image();
@@ -78,6 +82,17 @@ function World(ctx) {
         radius: 48
     });
     var headquarters = [playerHeadQuarters];
+    var playerMine = new Mine({
+        posX: 45,
+        posY: 600,
+        radius: 45,
+        tonnes: 10000,
+        bays: [
+            { reserved: false, approach: [ {x: 72, y: 520}, {x: 72, y: 570}, {x: 72, y: 600} ] },
+            { reserved: false, approach: [ {x: 45, y: 520}, {x: 45, y: 570}, {x: 45, y: 600} ] }
+        ]
+    });
+    var mines = [playerMine];
     var playerTanker= new Tanker({
         posX: 120,
         posY: 40,
@@ -87,11 +102,23 @@ function World(ctx) {
         width: 30,
         length: 60,
         capacity: 10,
-        transferRate: 1
-
+        transferRate: 1,
+        goal: new TankerThinkGoal({mine: playerMine})
     });
     var tankers = [playerTanker];
     vehicles = vehicles.concat(tankers);
+    var playerArmy = new Army({
+        hq: playerHeadQuarters,
+        mines: [playerMine],
+        tanks: [playerTank],
+        tankers: [playerTanker]
+    });
+    var enemyArmy = new Army({
+        hq: {},
+        mines: [],
+        tanks: [enemyTank],
+        tankers: []
+    });
     var playerTankRenderer = new PlayerTankRenderer(playerTank);
     var trajectoryRenderer = new TrajectoryRenderer(playerTank);
     var enemyTankRenderer = new EnemyTankRenderer(enemyTank);
@@ -101,9 +128,10 @@ function World(ctx) {
     var explosionRenderer = new ExplosionRenderer(explosions);
     var headQuartersRenderer = new HeadQuartersRenderer(headquarters);
     var tankerRenderer = new TankerRenderer(tankers);
+    var mineRenderer = new MineRenderer(mines);
     var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, imageLibrary,
-        [worldRenderer, headQuartersRenderer, trajectoryRenderer, playerTankRenderer, enemyTankRenderer, tankerRenderer,
-            bulletRenderer, explosionRenderer, missileRenderer]);
+        [worldRenderer, headQuartersRenderer, mineRenderer, trajectoryRenderer, playerTankRenderer, enemyTankRenderer,
+            tankerRenderer, bulletRenderer, explosionRenderer, missileRenderer]);
 
     this.movePlayerTankTo = function(pos) {
         playerTank.arriveAt(pos);
@@ -187,9 +215,8 @@ function World(ctx) {
     }
 
     this.update = function() {
-        tanks.forEach(function(entity) {
-            entity.update();
-        });
+        playerArmy.update();
+        enemyArmy.update();
         missiles.forEach(function(entity) {
             entity.update();
         });
