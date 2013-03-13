@@ -83,6 +83,7 @@ var TankerThinkGoal = ComplexGoal.extend({
     init: function(spec) {
         this._super();
         this.mine = spec.mine;
+        this.hq = spec.hq;
     },
 
     activate: function(entity) {
@@ -90,6 +91,8 @@ var TankerThinkGoal = ComplexGoal.extend({
         this.addSubGoalToFront(new RequestMineEntryGoal({mine: this.mine}));
         this.addSubGoalToBack(new FollowPathGoal());
         this.addSubGoalToBack(new LoadingGoal({mine: this.mine}));
+        this.addSubGoalToBack(new LeaveMineGoal());
+        this.addSubGoalToBack(new ArriveAtGoal({x: this.hq.position.X(), y: this.hq.position.Y()}));
     },
 
     process: function(entity) {
@@ -133,7 +136,7 @@ var FollowPathGoal = ComplexGoal.extend({
 
     activate: function(entity) {
         this._super(entity);
-        this.path = this.path.concat(entity.loadingBay.approach);
+        this.path = this.path.concat(entity.loadingBay.approach.inbound);
         this.reactivate();
     },
 
@@ -174,7 +177,7 @@ var ArriveAtGoal = Goal.extend({
 
     process: function(entity) {
         this._super(entity);
-      if (entity.position.distanceFrom($V([this.destination.x, this.destination.y])) <= 0.1) {
+      if (entity.position.distanceFrom($V([this.destination.x, this.destination.y])) <= 0.2) {
         this.goalState = GoalState.Completed;
       }
       return this.goalState;
@@ -182,7 +185,6 @@ var ArriveAtGoal = Goal.extend({
 
     terminate: function(entity) {
         entity.arriveOff();
-        entity.velocity = Vector.Zero(2);
     }
 
 });
@@ -210,6 +212,36 @@ var SeekToGoal = Goal.extend({
 
     terminate: function(entity) {
         entity.seekOff();
+    }
+
+});
+
+var LeaveMineGoal = Goal.extend({
+
+    init: function() {
+        this._super();
+        this.destination;
+    },
+
+    activate: function(entity) {
+        this._super(entity);
+        this.destination = entity.loadingBay.approach.outbound;
+        entity.seekTo(this.destination);
+        console.log("Leaving mine");
+    },
+
+    process: function(entity) {
+        this._super(entity);
+        if (entity.intersectsPoint($V([this.destination.x, this.destination.y]))) {
+            this.goalState = GoalState.Completed;
+        }
+        return this.goalState;
+    },
+
+    terminate: function(entity) {
+        entity.seekOff();
+        entity.loadingBay.reserved = false;
+        entity.loadingBay = null;
     }
 
 });

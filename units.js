@@ -114,6 +114,7 @@ MovableUnit = Unit.extend({
 
     arriveOff: function() {
         this.steering.arriveOff();
+        this.velocity = Vector.Zero(2);
         return this;
     },
 

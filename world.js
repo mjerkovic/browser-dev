@@ -88,8 +88,8 @@ function World(ctx) {
         radius: 45,
         tonnes: 10000,
         bays: [
-            { reserved: false, approach: [ {x: 72, y: 520}, {x: 72, y: 570}, {x: 72, y: 600} ] },
-            { reserved: false, approach: [ {x: 45, y: 520}, {x: 45, y: 570}, {x: 45, y: 600} ] }
+            { reserved: false, approach: { inbound: [ {x: 72, y: 520}, {x: 72, y: 570}, {x: 72, y: 600} ], outbound: {x: 72, y: 470 } } },
+            { reserved: false, approach: { inbound: [ {x: 45, y: 520}, {x: 45, y: 570}, {x: 45, y: 600} ], outbound: {x: 45, y: 500 } } }
         ]
     });
     var mines = [playerMine];
@@ -103,7 +103,7 @@ function World(ctx) {
         length: 60,
         capacity: 100,
         transferRate: 1,
-        goal: new TankerThinkGoal({mine: playerMine})
+        goal: new TankerThinkGoal({mine: playerMine, hq: playerHeadQuarters})
     });
     var tankers = [playerTanker];
     vehicles = vehicles.concat(tankers);
