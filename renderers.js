@@ -369,19 +369,14 @@ function TankerRenderer(tankers) {
             ctx.restore();
             if (tanker.loading) {
                 var radians = (2 * Math.PI) * tanker.capacityUsed();
-                if (radians <= Math.PI) {
-                    ctx.save();
-                    ctx.translate(tanker.position.X(), tanker.position.Y());
-                    ctx.fillStyle = "black";
-                    ctx.beginPath();
-                    ctx.arc(0, 0, 15, Math.PI/2, (Math.PI/2) + Math.PI, false);
-                    ctx.fill();
-                    ctx.beginPath();
-                    var startPoint = radians - Math.PI/2;
-                    ctx.arc(0, 0, 15, startPoint, startPoint + Math.PI, false);
-                    ctx.fill();
-                    ctx.restore();
-                }
+                ctx.save();
+                ctx.translate(tanker.position.X(), tanker.position.Y());
+                ctx.fillStyle = "blue";
+                ctx.beginPath();
+                ctx.lineTo(0, -15);
+                ctx.arc(0, -15, 15, -(Math.PI/2), -(Math.PI/2) + radians, false);
+                ctx.fill();
+                ctx.restore();
             }
         });
     }
