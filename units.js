@@ -400,6 +400,15 @@ var Mine = Unit.extend({
             availableBays[0].reserved = true;
             return availableBays[0];
         }
+    },
+
+    mineForEnergy: function()  {
+        if (this.tonnes > 0) {
+            this.tonnes--;
+            return 1;
+        } else {
+            return 0;
+        }
     }
 });
 
@@ -452,6 +461,14 @@ var Tanker = MovableUnit.extend({
     assignBay: function(bay) {
         bay.reserved = true;
         this.loadingBay = bay;
+    },
+
+    loadEnergy: function(energy) {
+        this.load = this.load + energy;
+    },
+
+    capacityUsed: function() {
+        return this.load / this.capacity;
     }
 });
 

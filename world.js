@@ -101,7 +101,7 @@ function World(ctx) {
         steering: new Steering(walls),
         width: 30,
         length: 60,
-        capacity: 10,
+        capacity: 100,
         transferRate: 1,
         goal: new TankerThinkGoal({mine: playerMine})
     });

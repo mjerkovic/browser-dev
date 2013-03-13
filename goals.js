@@ -31,7 +31,7 @@ var Goal = Class.extend({
     },
 
     activateIfInactive: function(entity) {
-        if (this.goalState = GoalState.Inactive) {
+        if (this.goalState == GoalState.Inactive) {
             this.activate(entity);
         }
     }
@@ -88,13 +88,14 @@ var TankerThinkGoal = ComplexGoal.extend({
     activate: function(entity) {
         this._super(entity);
         this.addSubGoalToFront(new RequestMineEntryGoal({mine: this.mine}));
-        this.addSubGoalToBack(new FollowPathGoal(entity.loadingBay.approach));
+        this.addSubGoalToBack(new FollowPathGoal());
+        this.addSubGoalToBack(new LoadingGoal({mine: this.mine}));
     },
 
     process: function(entity) {
         var subGoalStatus = this._super(entity);
         if(subGoalStatus == GoalState.Completed) {
-            var subGoal = this.subGoals.pop();
+            var subGoal = this.subGoals.shift();
             subGoal.goalState = GoalState.Inactive;
             this.addSubGoalToBack(subGoal);
         }
@@ -125,19 +126,24 @@ var RequestMineEntryGoal = Goal.extend({
 
 var FollowPathGoal = ComplexGoal.extend({
 
-    init: function(desiredPath) {
+    init: function() {
         this._super();
-        this.path = [].concat(desiredPath);
+        this.path = [];
     },
 
     activate: function(entity) {
         this._super(entity);
-        if (this.subGoals.isEmpty()) {
+        this.path = this.path.concat(entity.loadingBay.approach);
+        this.reactivate();
+    },
+
+    reactivate: function() {
+        if (this.subGoals.isEmpty() || this.subGoals.peek().isCompleted()) {
             var destination = this.path.shift();
             if (this.path.length > 0) {
-                this.addSubGoalToFront(new SeekToGoal(destination));
+                this.addSubGoalToBack(new SeekToGoal(destination));
             } else {
-                this.addSubGoalToFront(new ArriveAtGoal(destination));
+                this.addSubGoalToBack(new ArriveAtGoal(destination));
             }
         }
     },
@@ -145,7 +151,8 @@ var FollowPathGoal = ComplexGoal.extend({
     process: function(entity) {
         var subGoalStatus = this._super(entity);
         if (subGoalStatus == GoalState.Completed && !this.path.isEmpty()) {
-            return this.activate(entity);
+            this.reactivate();
+            return this.goalState;
         }
         this.goalState = subGoalStatus;
         return subGoalStatus;
@@ -167,7 +174,7 @@ var ArriveAtGoal = Goal.extend({
 
     process: function(entity) {
         this._super(entity);
-      if (entity.distanceFrom($V([this.destination.x, this.destination.y])) <= 0.1) {
+      if (entity.position.distanceFrom($V([this.destination.x, this.destination.y])) <= 0.1) {
         this.goalState = GoalState.Completed;
       }
       return this.goalState;
@@ -217,10 +224,17 @@ var LoadingGoal = Goal.extend({
     activate: function(entity) {
         this._super(entity);
         entity.loading = true;
+        console.log("Loading");
     },
 
     process: function(entity) {
         this._super(entity);
+        var energy = this.mine.mineForEnergy();
+        entity.loadEnergy(energy);
+        if (energy == 0 || entity.capacityUsed() >= 1) {
+            this.goalState = GoalState.Completed;
+            return this.goalState;
+        }
     },
 
     terminate: function(entity) {
