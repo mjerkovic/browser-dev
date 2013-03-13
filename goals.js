@@ -50,6 +50,11 @@ var ComplexGoal = Goal.extend({
         return this.processSubGoals(entity);
     },
 
+    terminate: function(entity) {
+        this._super(entity);
+        this.removeAllSubGoals(entity);
+    },
+
     processSubGoals: function(entity) {
         while(!this.subGoals.isEmpty() &&
             (this.subGoals.peek().isCompleted() ||
@@ -75,6 +80,13 @@ var ComplexGoal = Goal.extend({
 
     addSubGoalToBack: function(goal) {
         this.subGoals.push(goal);
+    },
+
+    removeAllSubGoals: function(entity) {
+        while (!this.subGoals.isEmpty()) {
+            var subGoal = this.subGoals.shift();
+            subGoal.terminate(entity);
+        }
     }
 
 });
@@ -184,6 +196,7 @@ var ArriveAtGoal = Goal.extend({
     },
 
     terminate: function(entity) {
+        this._super(entity);
         entity.arriveOff();
     }
 
@@ -211,6 +224,7 @@ var SeekToGoal = Goal.extend({
     },
 
     terminate: function(entity) {
+        this._super(entity);
         entity.seekOff();
     }
 
@@ -232,13 +246,14 @@ var LeaveMineGoal = Goal.extend({
 
     process: function(entity) {
         this._super(entity);
-        if (entity.intersectsPoint($V([this.destination.x, this.destination.y]))) {
+        if (entity.position.distanceFrom($V([this.destination.x, this.destination.y])) <= 0.2) {
             this.goalState = GoalState.Completed;
         }
         return this.goalState;
     },
 
     terminate: function(entity) {
+        this._super(entity);
         entity.seekOff();
         entity.loadingBay.reserved = false;
         entity.loadingBay = null;
