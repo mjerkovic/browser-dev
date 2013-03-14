@@ -133,9 +133,14 @@ function World(ctx) {
     var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, imageLibrary,
         [worldRenderer, headQuartersRenderer, mineRenderer, trajectoryRenderer, playerTankRenderer, enemyTankRenderer,
             tankerRenderer, bulletRenderer, explosionRenderer, missileRenderer]);
+    var userEvents = [];
 
     this.movePlayerTankTo = function(pos) {
         playerTank.arriveAt(pos);
+    }
+
+    this.addUserEvent = function(ev) {
+        userEvents.push(ev);
     }
 
     this.performAction = function(pos) {
@@ -216,6 +221,10 @@ function World(ctx) {
     }
 
     this.update = function() {
+        while (!userEvents.isEmpty()) {
+            var event = userEvents.shift();
+            event.fire();
+        }
         playerArmy.update();
         enemyArmy.update();
         missiles.forEach(function(entity) {

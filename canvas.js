@@ -9,13 +9,16 @@ function startGame() {
         var pos = posFromMouseEvent(ev);
         switch (ev.which) {
             case 1: {
-                world.performAction(pos);
-                console.log("Shoot 1");
+                world.addUserEvent({ fire: function() {
+                    world.performAction(pos);
+                }});
                 break;
             }
             case 3: {
-                console.log("Shoot 3");
-                world.fireMissile(pos);
+                //console.log("Shoot 3");
+                world.addUserEvent({ fire: function() {
+                    world.fireMissile(pos);
+                }});
                 break;
             }
         }
@@ -24,14 +27,18 @@ function startGame() {
     }, false);
     canvas.addEventListener('mousemove', function(ev) {
         ev.preventDefault();
-        world.aimAt(posFromMouseEvent(ev));
+        world.addUserEvent({ fire: function() {
+            world.aimAt(posFromMouseEvent(ev));
+        }});
     }, false);
     canvas.addEventListener('contextmenu', function(ev) {
         ev.preventDefault();
     }, false);
     canvas.addEventListener('mousewheel', function(ev) {
         ev.preventDefault();
-        world.adjustFiringAngle((ev.wheelDelta / 120) * 5);
+        world.addUserEvent({ fire: function() {
+            world.adjustFiringAngle((ev.wheelDelta / 120) * 5);
+        }});
     }, false);
     document.addEventListener('keydown', function(ev) {
         //ev.preventDefault();
