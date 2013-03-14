@@ -19,7 +19,26 @@ var Renderer = Class.extend({
     _angleFrom: function(vector) {
         var result = vector.angleFrom($V([0, -1]));
         return (vector.X() < 0) ? -result : result;
-    
+    },
+
+    _drawHealthBar: function(ctx, entity, offset) {
+        var fillColour;
+        if (entity.health <= 0.33) {
+            fillColour = "FF0000";
+        } else if (entity.health <= 0.66) {
+            fillColour = "FFFF00";
+        } else {
+            fillColour = "00EE00";
+        }
+        ctx.save();
+        ctx.fillStyle = "000000";
+        ctx.fillRect(entity.position.X() - 15, entity.position.Y() - offset, 30, 10);
+        ctx.restore();
+        ctx.save();
+        ctx.fillStyle = fillColour;
+        ctx.fillRect(entity.position.X() - 14, entity.position.Y() - (offset - 1), 28 * entity.health, 8);
+        ctx.restore();
+
     }
 
 });
@@ -121,22 +140,7 @@ var PlayerTankRenderer = Renderer.extend({
         ctx.drawImage(imageLibrary.playerTurretImg, 0, 0, 32, 32, -16, -16, 32, 32);
         ctx.restore();
 
-        var fillColour;
-        if (this.tank.health <= 0.33) {
-            fillColour = "FF0000";
-        } else if (this.tank.health <= 0.66) {
-            fillColour = "FFFF00";
-        } else {
-            fillColour = "00EE00";
-        }
-        ctx.save();
-        ctx.fillStyle = "000000";
-        ctx.fillRect(this.tank.position.X() - 15, this.tank.position.Y() - 30, 30, 10);
-        ctx.restore();
-        ctx.save();
-        ctx.fillStyle = fillColour;
-        ctx.fillRect(this.tank.position.X() - 14, this.tank.position.Y() - 29, 28 * this.tank.health, 8);
-        ctx.restore();
+        this._drawHealthBar(ctx, this.tank, 30);
 
         if (showFeelers) {
             ctx.save();
@@ -177,22 +181,7 @@ var EnemyTankRenderer = Renderer.extend({
         ctx.drawImage(imageLibrary.enemyTurretImg, 0, 0, 32, 32, -16, -16, 32, 32);
         ctx.restore();
 
-        var fillColour;
-        if (this.tank.health <= 0.33) {
-            fillColour = "FF0000";
-        } else if (this.tank.health <= 0.66) {
-            fillColour = "FFFF00";
-        } else {
-            fillColour = "00EE00";
-        }
-        ctx.save();
-        ctx.fillStyle = "000000";
-        ctx.fillRect(this.tank.position.X() - 15, this.tank.position.Y() - 30, 30, 10);
-        ctx.restore();
-        ctx.save();
-        ctx.fillStyle = fillColour;
-        ctx.fillRect(this.tank.position.X() - 14, this.tank.position.Y() - 29, 28 * this.tank.health, 8);
-        ctx.restore();
+        this._drawHealthBar(ctx, this.tank, 30);
 
         if (showFeelers) {
             ctx.save();
@@ -276,6 +265,7 @@ var ExplosionRenderer = Renderer.extend({
     },
 
     render: function(ctx, imageLibrary) {
+        var that = this;
         this.explosions.forEach(function(explosion) {
             var frame = explosion.currentFrame();
             if (explosion.blastRange) {
@@ -289,9 +279,9 @@ var ExplosionRenderer = Renderer.extend({
             }
             ctx.save();
             ctx.translate(explosion.x, explosion.y);
-            ctx.drawImage(imageLibrary.mainImg, this.frames[frame].x, 33, this.frames[frame].y, 32, -16, -16, 33, 32);
+            ctx.drawImage(imageLibrary.mainImg, that.frames[frame].x, 33, that.frames[frame].y, 32, -16, -16, 33, 32);
             ctx.restore();
-            explosion.finish(this.frames.length);
+            explosion.finish(that.frames.length);
         });
     }
 });
@@ -303,10 +293,11 @@ var MissileRenderer = Renderer.extend({
     },
 
     render: function(ctx, imageLibrary) {
+        var that = this;
         this.missiles.forEach(function(missile, idx) {
             ctx.save();
             ctx.translate(missile.position().X(), missile.position().Y());
-            ctx.rotate(this._angleFrom(missile.heading()));
+            ctx.rotate(that._angleFrom(missile.heading()));
             var scale = Math.max(1, ((missile.currentHeight() / missile.maxHeight()) * 4));
             var imgX = (missile.isBomblet()) ? 7 : 30;
             var imgY = (missile.isBomblet()) ? 7 : 30;
@@ -403,6 +394,7 @@ var TankerRenderer = Renderer.extend({
             ctx.rotate(that._angleFrom(tanker.heading));
             ctx.drawImage(imageLibrary.tankerImg, 220, 6, 20, 40, -tanker.width / 2, -tanker.length / 2, 30, 60);
             ctx.restore();
+            that._drawHealthBar(ctx, tanker, 45);
             if (tanker.loading) {
                 var radians = (2 * Math.PI) * tanker.capacityUsed();
                 ctx.save();
