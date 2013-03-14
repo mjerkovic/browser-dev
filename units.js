@@ -184,7 +184,7 @@ var Tank = MovableUnit.extend({
     fireMissile: function() {
         if (this.missiles() > 0) {
             this.missilesFired++;
-            return this.cannon.fireMissile(this.position);
+            return this.cannon.fireMissile(this);
         } else {
             return null;
         }
@@ -268,13 +268,14 @@ function Cannon(spec) {
         rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 9.81);
     }
 
-    this.fireMissile = function(firingPosition) {
+    this.fireMissile = function(firedBy) {
         return {
-            position: { x: firingPosition.X() + ((Math.cos(toRadians(angle)) * aimVector.X()) * 20),
-                y: firingPosition.Y() + ((Math.sin(toRadians(angle)) * aimVector.Y()) * 20) },
+            position: { x: firedBy.position.X() + ((Math.cos(toRadians(angle)) * aimVector.X()) * 20),
+                y: firedBy.position.Y() + ((Math.sin(toRadians(angle)) * aimVector.Y()) * 20) },
             heading: { x: aimVector.X(), y: aimVector.Y() },
             firingAngle: angle,
-            velocity: veloc
+            velocity: veloc,
+            firedBy: firedBy
         };
     }
 
