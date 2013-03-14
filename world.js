@@ -96,13 +96,14 @@ function World(ctx) {
     var playerTanker= new Tanker({
         posX: 120,
         posY: 40,
+        radius: 15,
         headingX: 0,
         headingY: 1,
         steering: new Steering(walls),
         width: 30,
         length: 60,
         capacity: 100,
-        transferRate: 1,
+        transferRate: 10,
         goal: new TankerThinkGoal({mine: playerMine, hq: playerHeadQuarters})
     });
     var tankers = [playerTanker];

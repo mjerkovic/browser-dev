@@ -381,7 +381,13 @@ function Explosion(pos, showBlastRange, endFunction) {
 var HeadQuarters = Unit.extend({
     init: function(spec) {
         this._super(spec);
+        this.energy = spec.energy || 0;
+    },
+
+    storeEnergy: function(amount) {
+        this.energy = this.energy + amount;
     }
+
 });
 
 var Mine = Unit.extend({
@@ -470,6 +476,19 @@ var Tanker = MovableUnit.extend({
 
     capacityUsed: function() {
         return this.load / this.capacity;
+    },
+
+    unload: function() {
+        var result = 0;
+        if (this.load < this.transferRate) {
+            result = this.load;
+            this.load = 0;
+            return result
+        } else {
+            result = this.transferRate;
+            this.load = this.load - this.transferRate;
+        }
+        return result;
     }
 });
 

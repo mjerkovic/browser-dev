@@ -7,7 +7,8 @@ var GoalState = {
 
 var Goal = Class.extend({
 
-    init: function() {
+    init: function(goalName, spec) {
+        this.name = goalName;
         this.goalState = GoalState.Inactive;
     },
 
@@ -40,8 +41,8 @@ var Goal = Class.extend({
 
 var ComplexGoal = Goal.extend({
 
-    init: function() {
-        this._super();
+    init: function(goalName, spec) {
+        this._super(goalName, spec);
         this.subGoals = [];
     },
 
@@ -93,7 +94,7 @@ var ComplexGoal = Goal.extend({
 
 var TankerThinkGoal = ComplexGoal.extend({
     init: function(spec) {
-        this._super();
+        this._super("Tanker Brain", spec);
         this.mine = spec.mine;
         this.hq = spec.hq;
     },
@@ -105,24 +106,36 @@ var TankerThinkGoal = ComplexGoal.extend({
         this.addSubGoalToBack(new LoadingGoal({mine: this.mine}));
         this.addSubGoalToBack(new LeaveMineGoal());
         this.addSubGoalToBack(new ArriveAtGoal({x: this.hq.position.X(), y: this.hq.position.Y()}));
+        this.addSubGoalToBack(new UnloadingGoal({hq: this.hq}));
     },
 
-    process: function(entity) {
-        var subGoalStatus = this._super(entity);
-        if(subGoalStatus == GoalState.Completed) {
+    processSubGoals: function(entity) {
+        while(!this.subGoals.isEmpty() &&
+            (this.subGoals.peek().isCompleted() ||
+                this.subGoals.peek().hasFailed())) {
             var subGoal = this.subGoals.shift();
+            subGoal.terminate(entity);
             subGoal.goalState = GoalState.Inactive;
             this.addSubGoalToBack(subGoal);
         }
-        return this.goalState;
-    }
+        if (!this.subGoals.isEmpty()) {
+            var subGoalStatus = this.subGoals.peek().process(entity);
+            if (subGoalStatus == GoalState.Completed && this.subGoals.length > 1) {
+                return GoalState.Active;
+            }
+            return subGoalStatus;
+        } else {
+            this.goalState = GoalState.Completed;
+            return this.goalState;
+        }
+    },
 
 });
 
 var RequestMineEntryGoal = Goal.extend({
 
     init: function(spec) {
-        this._super();
+        this._super("Request Mine Entry", spec);
         this.mine = spec.mine;
     },
 
@@ -142,7 +155,7 @@ var RequestMineEntryGoal = Goal.extend({
 var FollowPathGoal = ComplexGoal.extend({
 
     init: function() {
-        this._super();
+        this._super("Follow Path");
         this.path = [];
     },
 
@@ -177,7 +190,7 @@ var FollowPathGoal = ComplexGoal.extend({
 var ArriveAtGoal = Goal.extend({
 
     init: function(dest) {
-        this._super();
+        this._super("Arrive At");
         this.destination = dest;
         console.log("Arriving at " + this.destination.x + ", " + this.destination.y);
     },
@@ -205,7 +218,7 @@ var ArriveAtGoal = Goal.extend({
 var SeekToGoal = Goal.extend({
 
     init: function(dest) {
-        this._super();
+        this._super("Seek To");
         this.destination = dest;
         console.log("Seeking to " + this.destination.x + ", " + this.destination.y);
     },
@@ -233,7 +246,7 @@ var SeekToGoal = Goal.extend({
 var LeaveMineGoal = Goal.extend({
 
     init: function() {
-        this._super();
+        this._super("Leave Mine");
         this.destination;
     },
 
@@ -246,7 +259,7 @@ var LeaveMineGoal = Goal.extend({
 
     process: function(entity) {
         this._super(entity);
-        if (entity.position.distanceFrom($V([this.destination.x, this.destination.y])) <= 0.2) {
+        if (entity.position.distanceFrom($V([this.destination.x, this.destination.y])) <= entity.radius) {
             this.goalState = GoalState.Completed;
         }
         return this.goalState;
@@ -264,7 +277,7 @@ var LeaveMineGoal = Goal.extend({
 var LoadingGoal = Goal.extend({
 
     init: function(spec) {
-        this._super();
+        this._super("Loading", spec);
         this.mine = spec.mine;
     },
 
@@ -279,6 +292,35 @@ var LoadingGoal = Goal.extend({
         var energy = this.mine.mineForEnergy();
         entity.loadEnergy(energy);
         if (energy == 0 || entity.capacityUsed() >= 1) {
+            this.goalState = GoalState.Completed;
+            return this.goalState;
+        }
+    },
+
+    terminate: function(entity) {
+        entity.loading = false;
+    }
+
+});
+
+var UnloadingGoal = Goal.extend({
+
+    init: function(spec) {
+        this._super("Unloading", spec);
+        this.hq = spec.hq;
+    },
+
+    activate: function(entity) {
+        this._super(entity);
+        entity.loading = true;
+        console.log("Unloading");
+    },
+
+    process: function(entity) {
+        this._super(entity);
+        var energy = entity.unload();
+        this.hq.storeEnergy(energy);
+        if (entity.load == 0) {
             this.goalState = GoalState.Completed;
             return this.goalState;
         }
