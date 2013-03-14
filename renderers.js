@@ -14,15 +14,30 @@ function GameRenderer(ctx, width, height, imageLibrary, renderers) {
     }
 }
 
-function WorldRenderer(playerTank, craters) {
+var Renderer = Class.extend({
 
-    this.render = function(ctx, img) {
-        drawBackground(ctx, img);
-        drawCraters(ctx, img);
-        drawSidePanel(ctx, img);
+    _angleFrom: function(vector) {
+        var result = vector.angleFrom($V([0, -1]));
+        return (vector.X() < 0) ? -result : result;
+    
     }
 
-    var drawBackground = function(ctx, imageLibrary) {
+});
+
+var WorldRenderer = Renderer.extend({
+
+    init: function(tank, craterz) {
+        this.playerTank = tank;
+        this.craters = craterz;
+    },
+
+    render: function(ctx, imageLibrary) {
+        this._drawBackground(ctx, imageLibrary);
+        this._drawCraters(ctx, imageLibrary);
+        this._drawSidePanel(ctx, imageLibrary);
+    },
+
+    _drawBackground: function(ctx, imageLibrary) {
         ctx.save();
         var numXTiles = Math.ceil(BATTLEFIELD_WIDTH / 31);
         var numYTiles = Math.ceil(BATTLEFIELD_HEIGHT / 31);
@@ -32,35 +47,29 @@ function WorldRenderer(playerTank, craters) {
             }
         }
         ctx.restore();
-    }
+    },
 
-    var drawCraters = function(ctx, imageLibrary) {
+    _drawCraters: function(ctx, imageLibrary) {
         ctx.save();
-        craters.forEach(function(crater) {
+        this.craters.forEach(function(crater) {
             ctx.drawImage(imageLibrary.mainImg, 264, 165, 31, 31, crater.X() - 15, crater.Y() - 15, 31, 31);
         });
         ctx.restore();
-    }
+    },
 
-    drawMissiles = function(ctx, imageLibrary) {
-        ctx.save();
-        ctx.translate(BATTLEFIELD_WIDTH + 5, 302);
-        var missileY = 0;
-        for (var i = 0; i < playerTank.missiles(); i++) {
-            ctx.drawImage(imageLibrary.mainImg, 132, 33, 30, 30, 0, missileY, 60, 60);
-            missileY = missileY + 60;
-        }
-        ctx.restore();
-    }
+    _drawSidePanel: function(ctx, imageLibrary) {
+        this._drawFiringAngle(ctx);
+        this._drawMissiles(ctx, imageLibrary);
+    },
 
-    drawFiringAngle = function(ctx) {
+    _drawFiringAngle: function(ctx) {
         ctx.save();
         ctx.fillRect(BATTLEFIELD_WIDTH + 5, 0, 195, BATTLEFIELD_HEIGHT);
         ctx.fillStyle = "FFFF00";
         ctx.strokeStyle = "FFFF00";
         ctx.strokeRect(BATTLEFIELD_WIDTH + 5, 0, 195, 102);
         ctx.translate(BATTLEFIELD_WIDTH + 5, 100);
-        var angleOfTurret = (Math.PI / 180) * -playerTank.cannon.elevation();
+        var angleOfTurret = (Math.PI / 180) * -this.playerTank.cannon.elevation();
         ctx.beginPath();
         ctx.arc(0, 0, 30, 0, angleOfTurret, true);
         ctx.stroke();
@@ -70,69 +79,71 @@ function WorldRenderer(playerTank, craters) {
         ctx.save();
         ctx.fillStyle = "yellow";
         ctx.font = "bold 48px Arial";
-        ctx.fillText(playerTank.cannon.elevation() + "\u00B0", BATTLEFIELD_WIDTH + 115, 65);
+        ctx.fillText(this.playerTank.cannon.elevation() + "\u00B0", BATTLEFIELD_WIDTH + 115, 65);
+        ctx.restore();
+    },
+
+    _drawMissiles: function(ctx, imageLibrary) {
+        ctx.save();
+        ctx.translate(BATTLEFIELD_WIDTH + 5, 302);
+        var missileY = 0;
+        for (var i = 0; i < this.playerTank.missiles(); i++) {
+            ctx.drawImage(imageLibrary.mainImg, 132, 33, 30, 30, 0, missileY, 60, 60);
+            missileY = missileY + 60;
+        }
         ctx.restore();
     }
 
-    var drawSidePanel = function(ctx, imageLibrary) {
-        drawFiringAngle(ctx);
-        drawMissiles(ctx, imageLibrary);
-    }
 
-}
+});
 
-function Renderable() {
-    angleFrom = function(vector) {
-        var result = vector.angleFrom($V([0, -1]));
-        return (vector.X() < 0) ? -result : result;
-
-    }
-}
-
-function PlayerTankRenderer(tank) {
+var PlayerTankRenderer = Renderer.extend({
 	
-	var frame = 0;
+    init: function(t) {
+        this.frame = 0;
+        this.tank = t;
+    },
 
-	this.render = function(ctx, imageLibrary) {
+	render: function(ctx, imageLibrary) {
 		ctx.save();
-		ctx.translate(tank.position.X(), tank.position.Y());
-		ctx.rotate(angleFrom(tank.heading));
+		ctx.translate(this.tank.position.X(), this.tank.position.Y());
+		ctx.rotate(this._angleFrom(this.tank.heading));
         var tankImgPos = imageLibrary.playerImgPos;
-        var imgPos = (tank.velocity.length() >= 0 && tank.velocity.length() < 0.4) ? tankImgPos.length - 1 : frame % tankImgPos.length;
+        var imgPos = (this.tank.velocity.length() >= 0 && this.tank.velocity.length() < 0.4) ? tankImgPos.length - 1 : this.frame % tankImgPos.length;
         var img = tankImgPos[imgPos];
         ctx.drawImage(imageLibrary.mainImg, img.x, img.y, img.w, img.h, -img.w/2, -img.h/2, img.w, img.h);
         ctx.restore();
-        frame = (frame == tankImgPos.length - 1) ? 0 : frame + 1;
+        this.frame = (this.frame == tankImgPos.length - 1) ? 0 : this.frame + 1;
 
         ctx.save();
-        ctx.translate(tank.position.X(), tank.position.Y());
-        ctx.rotate(angleFrom(tank.aim()));
+        ctx.translate(this.tank.position.X(), this.tank.position.Y());
+        ctx.rotate(this._angleFrom(this.tank.aim()));
         ctx.drawImage(imageLibrary.playerTurretImg, 0, 0, 32, 32, -16, -16, 32, 32);
         ctx.restore();
 
         var fillColour;
-        if (tank.health <= 0.33) {
+        if (this.tank.health <= 0.33) {
             fillColour = "FF0000";
-        } else if (tank.health <= 0.66) {
+        } else if (this.tank.health <= 0.66) {
             fillColour = "FFFF00";
         } else {
             fillColour = "00EE00";
         }
         ctx.save();
         ctx.fillStyle = "000000";
-        ctx.fillRect(tank.position.X() - 15, tank.position.Y() - 30, 30, 10);
+        ctx.fillRect(this.tank.position.X() - 15, this.tank.position.Y() - 30, 30, 10);
         ctx.restore();
         ctx.save();
         ctx.fillStyle = fillColour;
-        ctx.fillRect(tank.position.X() - 14, tank.position.Y() - 29, 28 * tank.health, 8);
+        ctx.fillRect(this.tank.position.X() - 14, this.tank.position.Y() - 29, 28 * this.tank.health, 8);
         ctx.restore();
 
         if (showFeelers) {
             ctx.save();
-            var feelers = createFeelersFor(tank);
+            var feelers = createFeelersFor(this.tank);
             feelers.forEach(function(feeler) {
                 ctx.beginPath();
-                ctx.moveTo(tank.position.X(), tank.position.Y());
+                ctx.moveTo(this.tank.position.X(), this.tank.position.Y());
                 ctx.lineTo(feeler.X(), feeler.Y());
                 ctx.stroke();
             });
@@ -140,54 +151,55 @@ function PlayerTankRenderer(tank) {
         }
 	}
 	
-}
+});
 
-PlayerTankRenderer.prototype = new Renderable();
+var EnemyTankRenderer = Renderer.extend({
 
-function EnemyTankRenderer(tank) {
+    init: function(t) {
+        this.frame = 0;
+        this.tank = t;
+    },
 
-    var frame = 0;
-
-    this.render = function(ctx, imageLibrary) {
+    render: function(ctx, imageLibrary) {
         ctx.save();
-        ctx.translate(tank.position.X(), tank.position.Y());
-        ctx.rotate(angleFrom(tank.heading));
+        ctx.translate(this.tank.position.X(), this.tank.position.Y());
+        ctx.rotate(this._angleFrom(this.tank.heading));
         var tankImgPos = imageLibrary.enemyImgPos;
-        var imgPos = (tank.velocity.length() >= 0 && tank.velocity.length() < 0.4) ? tankImgPos.length - 1 : frame % tankImgPos.length;
+        var imgPos = (this.tank.velocity.length() >= 0 && this.tank.velocity.length() < 0.4) ? tankImgPos.length - 1 : this.frame % tankImgPos.length;
         var img = tankImgPos[imgPos];
         ctx.drawImage(imageLibrary.mainImg, img.x, img.y, img.w, img.h, -img.w/2, -img.h/2, img.w, img.h);
         ctx.restore();
-        frame = (frame == tankImgPos.length - 1) ? 0 : frame + 1;
+        this.frame = (this.frame == tankImgPos.length - 1) ? 0 : this.frame + 1;
 
         ctx.save();
-        ctx.translate(tank.position.X(), tank.position.Y());
-        ctx.rotate(angleFrom(tank.aim()));
+        ctx.translate(this.tank.position.X(), this.tank.position.Y());
+        ctx.rotate(this._angleFrom(this.tank.aim()));
         ctx.drawImage(imageLibrary.enemyTurretImg, 0, 0, 32, 32, -16, -16, 32, 32);
         ctx.restore();
 
         var fillColour;
-        if (tank.health <= 0.33) {
+        if (this.tank.health <= 0.33) {
             fillColour = "FF0000";
-        } else if (tank.health <= 0.66) {
+        } else if (this.tank.health <= 0.66) {
             fillColour = "FFFF00";
         } else {
             fillColour = "00EE00";
         }
         ctx.save();
         ctx.fillStyle = "000000";
-        ctx.fillRect(tank.position.X() - 15, tank.position.Y() - 30, 30, 10);
+        ctx.fillRect(this.tank.position.X() - 15, this.tank.position.Y() - 30, 30, 10);
         ctx.restore();
         ctx.save();
         ctx.fillStyle = fillColour;
-        ctx.fillRect(tank.position.X() - 14, tank.position.Y() - 29, 28 * tank.health, 8);
+        ctx.fillRect(this.tank.position.X() - 14, this.tank.position.Y() - 29, 28 * this.tank.health, 8);
         ctx.restore();
 
         if (showFeelers) {
             ctx.save();
-            var feelers = createFeelersFor(tank);
+            var feelers = createFeelersFor(this.tank);
             feelers.forEach(function(feeler) {
                 ctx.beginPath();
-                ctx.moveTo(tank.position.X(), tank.position.Y());
+                ctx.moveTo(this.tank.position.X(), this.tank.position.Y());
                 ctx.lineTo(feeler.X(), feeler.Y());
                 ctx.stroke();
             });
@@ -195,13 +207,15 @@ function EnemyTankRenderer(tank) {
         }
     }
 
-}
+});
 
-EnemyTankRenderer.prototype = new Renderable();
+var TrajectoryRenderer = Renderer.extend({
 
-function TrajectoryRenderer(tank) {
-
-    this.render = function(ctx) {
+    init: function(t) {
+        this.tank = t;
+    },
+    
+    render: function(ctx) {
         ctx.save();
         ctx.translate(BATTLEFIELD_WIDTH + 5, 302);
         ctx.strokeStyle = "yellow";
@@ -214,11 +228,11 @@ function TrajectoryRenderer(tank) {
         ctx.stroke();
         ctx.moveTo(0, 0);
 
-        var firingVelocity = tank.cannon.velocity();
-        var elevation = tank.cannon.elevation();
+        var firingVelocity = this.tank.cannon.velocity();
+        var elevation = this.tank.cannon.elevation();
         var maxHeight = Trajectory.maxHeight(firingVelocity, elevation);
         var impactTime = Trajectory.impactTime(firingVelocity, elevation);
-        var firingRange = tank.cannon.range();
+        var firingRange = this.tank.cannon.range();
         var scaleX = (firingRange > 200) ? 200 / firingRange : 1;
         var scaleY = (maxHeight > 200) ? 200 / maxHeight : 1;
         ctx.scale(scaleX, scaleY);
@@ -252,14 +266,17 @@ function TrajectoryRenderer(tank) {
         ctx.restore()
     }
 
-}
+});
 
-function ExplosionRenderer(explosions) {
+var ExplosionRenderer = Renderer.extend({
 
-    var frames = [{"x": 33, "y": 31}, {"x": 66, "y": 31}, {"x": 99, "y": 30}];
+    init: function(explns) {
+        this.explosions = explns;
+        this.frames = [{"x": 33, "y": 31}, {"x": 66, "y": 31}, {"x": 99, "y": 30}];
+    },
 
-    this.render = function(ctx, imageLibrary) {
-        explosions.forEach(function(explosion) {
+    render: function(ctx, imageLibrary) {
+        this.explosions.forEach(function(explosion) {
             var frame = explosion.currentFrame();
             if (explosion.blastRange) {
                 ctx.save();
@@ -272,20 +289,24 @@ function ExplosionRenderer(explosions) {
             }
             ctx.save();
             ctx.translate(explosion.x, explosion.y);
-            ctx.drawImage(imageLibrary.mainImg, frames[frame].x, 33, frames[frame].y, 32, -16, -16, 33, 32);
+            ctx.drawImage(imageLibrary.mainImg, this.frames[frame].x, 33, this.frames[frame].y, 32, -16, -16, 33, 32);
             ctx.restore();
-            explosion.finish(frames.length);
+            explosion.finish(this.frames.length);
         });
     }
-}
+});
 
-function MissileRenderer(missiles) {
+var MissileRenderer = Renderer.extend({
 
-    this.render = function(ctx, imageLibrary) {
-        missiles.forEach(function(missile, idx) {
+    init: function(miss) {
+        this.missiles = miss;
+    },
+
+    render: function(ctx, imageLibrary) {
+        this.missiles.forEach(function(missile, idx) {
             ctx.save();
             ctx.translate(missile.position().X(), missile.position().Y());
-            ctx.rotate(angleFrom(missile.heading()));
+            ctx.rotate(this._angleFrom(missile.heading()));
             var scale = Math.max(1, ((missile.currentHeight() / missile.maxHeight()) * 4));
             var imgX = (missile.isBomblet()) ? 7 : 30;
             var imgY = (missile.isBomblet()) ? 7 : 30;
@@ -306,26 +327,32 @@ function MissileRenderer(missiles) {
         });
     }
 
-}
+});
 
-MissileRenderer.prototype = new Renderable();
+var BulletRenderer = Renderer.extend({
 
-function BulletRenderer(bullets) {
+    init: function(blts) {
+        this.bullets = blts;
+    },
 
-    this.render = function(ctx, imageLibrary) {
-        bullets.forEach(function(bullet) {
+    render: function(ctx, imageLibrary) {
+        this.bullets.forEach(function(bullet) {
             ctx.save();
             ctx.translate(bullet.position.X(), bullet.position.Y());
             ctx.drawImage(imageLibrary.mainImg, 277, 45, 8, 8, -4, -4, 8, 8);
             ctx.restore();
         });
     }
-}
+});
 
-function HeadQuartersRenderer(headquarters) {
+var HeadQuartersRenderer = Renderer.extend({
 
-    this.render = function(ctx, imageLibrary) {
-        headquarters.forEach(function(hq) {
+    init: function(hq) {
+        this.headquarters = hq;
+    },
+
+    render: function(ctx, imageLibrary) {
+        this.headquarters.forEach(function(hq) {
             var numTiles = Math.ceil((hq.radius * 2) / 32);
             ctx.save();
             ctx.translate(hq.position.X() - hq.radius, hq.position.Y() - hq.radius);
@@ -338,12 +365,16 @@ function HeadQuartersRenderer(headquarters) {
         });
     }
 
-}
+});
 
-function MineRenderer(mines) {
+var MineRenderer = Renderer.extend({
 
-    this.render = function(ctx, imageLibrary) {
-        mines.forEach(function(mine) {
+    init: function(m) {
+        this.mines = m;
+    },
+
+    render: function(ctx, imageLibrary) {
+        this.mines.forEach(function(mine) {
             var numTiles = Math.ceil((mine.radius * 2) / 30);
             ctx.save();
             ctx.translate(mine.position.X() - mine.radius, mine.position.Y() - mine.radius);
@@ -356,15 +387,20 @@ function MineRenderer(mines) {
         });
     }
 
-}
+});
 
-function TankerRenderer(tankers) {
+var TankerRenderer = Renderer.extend({
 
-    this.render = function(ctx, imageLibrary) {
-        tankers.forEach(function(tanker) {
+    init: function(tnkrs) {
+        this.tankers = tnkrs;
+    },
+
+    render: function(ctx, imageLibrary) {
+        var that = this;
+        this.tankers.forEach(function(tanker) {
             ctx.save();
             ctx.translate(tanker.position.X(), tanker.position.Y());
-            ctx.rotate(angleFrom(tanker.heading));
+            ctx.rotate(that._angleFrom(tanker.heading));
             ctx.drawImage(imageLibrary.tankerImg, 220, 6, 20, 40, -tanker.width / 2, -tanker.length / 2, 30, 60);
             ctx.restore();
             if (tanker.loading) {
@@ -381,30 +417,4 @@ function TankerRenderer(tankers) {
         });
     }
 
-}
-TankerRenderer.prototype = new Renderable();
-
-//0.39 rad = 22.5 degrees
-var Compass = {
-    directions:  [
-        { name: "N", x: 0, y: -1 },
-        { name: "NE", x: Math.cos(toRadians(45)), y: -Math.sin(toRadians(45)) },
-        { name: "E", x: 1, y: 0 },
-        { name: "SE", x: Math.cos(toRadians(45)), y: Math.sin(toRadians(45)) },
-        { name: "S", x: 0, y: 1 },
-        { name: "SW", x: -Math.cos(toRadians(45)), y: Math.sin(toRadians(45)) },
-        { name: "W", x: -1, y: 0 },
-        { name: "NW", x: -Math.cos(toRadians(45)), y: -Math.sin(toRadians(45)) }
-    ],
-
-    directionOf: function(heading) {
-        console.log(this.directions[0]);
-        for (var i = 0; i < this.directions.length; i++) {
-            var direction = this.directions[i];
-            var dot = Math.abs(heading.dot($V([direction.x, direction.y])));
-            if (dot >= 0 && dot <= 0.39) {
-                return direction.name;
-            }
-        }
-    }
-}
+});
