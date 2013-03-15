@@ -6,6 +6,9 @@ function Steering(walls) {
     var arrivePos;
     var wanderOn = false;
     var wallAvoidanceOn = false;
+    var interposeOn = false;
+    var interposeA;
+    var interposeB;
 
     this.calculate = function(entity) {
         var steeringForce = Vector.Zero(2);
@@ -20,6 +23,9 @@ function Steering(walls) {
         }
         if (wallAvoidanceOn) {
             steeringForce = steeringForce.add(wallAvoidance(entity));
+        }
+        if (interposeOn) {
+            steeringForce = steeringForce.add(interpose(entity));
         }
         return steeringForce;
     }
@@ -75,6 +81,16 @@ function Steering(walls) {
         return steeringForce;
     }
 
+    function interpose(entity) {
+        var midPoint = interposeA.position.add(interposeB.position).dividedBy(2);
+        var timeToReachMidPoint = midPoint.subtract(entity.position).length() / entity.maxSpeed;
+        var aPos = interposeA.position.add(interposeA.velocity.toUnitVector().multiply(timeToReachMidPoint));
+        var bPos = interposeB.position.add(interposeB.velocity.toUnitVector().multiply(timeToReachMidPoint));
+        midPoint = aPos.add(bPos).dividedBy(2);
+        arrivePos = midPoint;
+        return arrive(entity);
+    }
+
     this.seekTo = function(pos) {
         seekPos = $V([pos.x, pos.y]);
         seekOn = true;
@@ -107,6 +123,18 @@ function Steering(walls) {
 
     this.wallAvoidanceOff = function() {
         wallAvoidanceOn = false;
+    }
+
+    this.interposeOn = function(a, b) {
+        interposeA = a;
+        interposeB = b;
+        interposeOn = true;
+    }
+
+    this.interposeOff = function() {
+        interposeA = null;
+        interposeB = null;
+        interposeOn = false;
     }
 
 }

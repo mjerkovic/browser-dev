@@ -128,6 +128,16 @@ MovableUnit = Unit.extend({
         return this;
     },
 
+    interpose: function(a, b) {
+        this.steering.interposeOn(a, b);
+        return this;
+    },
+
+    interposeOff: function() {
+        this.steering.interposeOff();
+        return this;
+    },
+
     update: function() {
         var steeringForce = this.steering.calculate(this);
         steeringForce = this._restrictTurnRate(steeringForce);
