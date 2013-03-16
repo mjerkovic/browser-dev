@@ -95,6 +95,7 @@ MovableUnit = Unit.extend({
         this.mass = 1;
         this.velocity = spec.velocity || $V([0, 0]);
         this.steering = spec.steering;
+        this.goal = spec.goal;
     },
 
     seekTo: function(pos) {
@@ -139,6 +140,9 @@ MovableUnit = Unit.extend({
     },
 
     update: function() {
+        if (this.goal) {
+            this.goal.process(this);
+        }
         var steeringForce = this.steering.calculate(this);
         steeringForce = this._restrictTurnRate(steeringForce);
         var acceleration = steeringForce.dividedBy(this.mass);

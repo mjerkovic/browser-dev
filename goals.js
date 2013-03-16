@@ -331,3 +331,31 @@ var UnloadingGoal = Goal.extend({
     }
 
 });
+
+var EnemyTankGoal = ComplexGoal.extend({
+
+    init: function() {
+        this._super("Enemy Tank Think");
+    },
+
+    activate: function(entity) {
+        this._super(entity);
+        this.addSubGoalToFront(new ExploreGoal());
+    }
+});
+
+var ExploreGoal = Goal.extend({
+
+    init: function() {
+        this._super("Explore");
+    },
+
+    activate: function(entity) {
+        this._super(entity);
+        entity.wander();
+    },
+
+    terminate: function(entity) {
+        entity.wanderOff();
+    }
+});

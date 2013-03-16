@@ -70,11 +70,12 @@ function World(ctx) {
         headingY: -0.7071,
         missiles: 6,
         cannon: Armoury.simpleCannon(-0,7071, -0,7071),
-        steering: new Steering(walls)
+        steering: new Steering(walls),
+        goal: new EnemyTankGoal()
     });
     tanks.push(enemyTank, playerTank);
     playerTank.wallAvoidance();
-    enemyTank.wander().wallAvoidance();
+    enemyTank.wallAvoidance();
     vehicles = vehicles.concat(tanks);
     var playerHeadQuarters = new HeadQuarters({
         posX: 48,
