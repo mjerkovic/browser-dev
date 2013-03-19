@@ -609,7 +609,7 @@ var TargetingSystem = Class.extend({
         this.target;
     },
 
-    targetsInRange: function(position, owner, range) {
+    findTargets: function(position, owner, range) {
         return this.world.vehicles.filter(function(entity) {
             return entity != owner && position.distanceFrom(entity.position) <= range;
         });
@@ -623,9 +623,9 @@ var TargetingSystem = Class.extend({
         this.target = null;
     },
 
-    targetOutOfRange: function(position, range) {
-        return this.target == null ||
-            position.distanceFrom(this.target.position) > range;
+    targetInRange: function(position, range) {
+        return this.target != null &&
+            position.distanceFrom(this.target.position) <= range;
     }
 
 });

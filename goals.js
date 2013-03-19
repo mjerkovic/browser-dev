@@ -453,7 +453,7 @@ var ScanForTargetGoal = Goal.extend({
     process: function(entity) {
         this._super(entity);
         console.log("Scanning for targets");
-        var targets = entity.targetingSystem.targetsInRange(entity.position, entity.owner, 200);
+        var targets = entity.targetingSystem.findTargets(entity.position, entity.owner, 200);
         if (!targets.isEmpty()) {
             entity.targetingSystem.track(this.findClosestTarget(entity, targets));
             this.goalState = GoalState.Completed;
@@ -491,10 +491,12 @@ var TrackGoal = Goal.extend({
 
     process: function(entity) {
         this._super(entity);
-        if (entity.targetingSystem.targetOutOfRange(entity.owner.position, 200)) {
+        if (entity.targetingSystem.targetInRange(entity.owner.position, 200)) {
+            //entity.cannon.fire();
+        } else {
             this.goalState = GoalState.Completed;
-            return this.goalState;
         }
+        return this.goalState;
     },
 
     terminate: function(entity) {
