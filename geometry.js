@@ -98,6 +98,6 @@ var Trajectory = {
 
     impactTime: function(velocity, angleInDegrees) {
         return ((velocity * Math.sin(toRadians(angleInDegrees))) +
-            Math.sqrt(Math.pow((velocity * Math.sin(toRadians(angleInDegrees))),2))) / 9.81;
+            Math.sqrt(Math.pow((velocity * Math.sin(toRadians(angleInDegrees))),2))) / 19.62;
     }
 }

@@ -237,7 +237,7 @@ var TrajectoryRenderer = Renderer.extend({
             ctx.beginPath();
             ctx.moveTo(xPos, -yPos);
             xPos = xPos + (xVelocity * 0.1);
-            yPos = Math.max(0, yVelocity * time + 0.5 * -9.81 * time * time);
+            yPos = Math.max(0, yVelocity * time + 0.5 * -19.62 * time * time);
             ctx.lineTo(xPos, -yPos);
             ctx.stroke();
             if (typeof maxY == 'undefined' && yPos < previousHeight) {

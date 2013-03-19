@@ -276,7 +276,7 @@ function Cannon(spec) {
     var aimVector = $V([spec.headingX, spec.headingY]);
     var veloc = spec.velocity || 20;
     var angle = spec.angle || 45;
-    var rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 9.81);
+    var rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 19.621);
     var targetingSys = spec.targetingSystem;
     var steering = spec.steering;
     var goal = spec.goal;
@@ -307,7 +307,7 @@ function Cannon(spec) {
 
     this.elevateTo = function(angleInDegrees) {
         angle = Math.min(Math.max(0, angle + angleInDegrees), 90);
-        rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 9.81);
+        rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 19.621);
     }
 
     this.fireMissile = function(firedBy) {
@@ -427,7 +427,7 @@ function Missile(spec, callback) {
 
     this.update = function() {
         time = time + 0.1;
-        newHeight = yVelocity * time + 0.5 * -9.81 * time * time;
+        newHeight = yVelocity * time + 0.5 * -19.62 * time * time;
         var done = (mirv) ? newHeight <= currHeight : currHeight < 0;
         currHeight = newHeight;
         if (done) {
