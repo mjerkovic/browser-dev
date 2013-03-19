@@ -391,7 +391,6 @@ var ChaseTankGoal = Goal.extend({
     activate: function(entity) {
         this._super(entity);
         entity.pursue(entity.cannon.targetingSystem.target);
-        console.log("Chasing Tank");
     },
 
     process: function(entity) {
@@ -452,7 +451,6 @@ var ScanForTargetGoal = Goal.extend({
 
     process: function(entity) {
         this._super(entity);
-        console.log("Scanning for targets");
         var targets = entity.targetingSystem.findTargets(entity.position, entity.owner, 200);
         if (!targets.isEmpty()) {
             entity.targetingSystem.track(this.findClosestTarget(entity, targets));
@@ -486,7 +484,6 @@ var TrackGoal = Goal.extend({
     activate: function(entity) {
         this._super(entity);
         entity.pursue(entity.targetingSystem.target);
-        console.log("Tracking target");
     },
 
     process: function(entity) {
@@ -500,7 +497,6 @@ var TrackGoal = Goal.extend({
     },
 
     terminate: function(entity) {
-        console.log("Tracking stopped");
         entity.pursueOff();
         entity.targetingSystem.stopTracking();
     }
