@@ -177,7 +177,7 @@ var EnemyTankRenderer = Renderer.extend({
 
         ctx.save();
         ctx.translate(this.tank.position.X(), this.tank.position.Y());
-        ctx.rotate(this._angleFrom(this.tank.aim()));
+        ctx.rotate(this._angleFrom(this.tank.cannon.heading));
         ctx.drawImage(imageLibrary.enemyTurretImg, 0, 0, 32, 32, -16, -16, 32, 32);
         ctx.restore();
 

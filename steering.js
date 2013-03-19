@@ -9,6 +9,8 @@ function Steering(walls) {
     var interposeOn = false;
     var interposeA;
     var interposeB;
+    var pursueOn = false;
+    var evader;
 
     this.calculate = function(entity) {
         var steeringForce = Vector.Zero(2);
@@ -26,6 +28,9 @@ function Steering(walls) {
         }
         if (interposeOn) {
             steeringForce = steeringForce.add(interpose(entity));
+        }
+        if (pursueOn) {
+            steeringForce = steeringForce.add(pursuit(entity));
         }
         return steeringForce;
     }
@@ -79,6 +84,19 @@ function Steering(walls) {
             }
         }
         return steeringForce;
+    }
+
+    var pursuit = function(entity) {
+        var toEvader = evader.position.subtract(entity.position);
+        var relativeHeading = entity.heading.dot(evader.heading);
+        if ((toEvader.dot(entity.heading) > 0) && (relativeHeading < 0.95)) {
+            seekPos = evader.position;
+            return seek(entity);
+        }
+        var lookAheadTime = toEvader.length() / (entity.maxSpeed + evader.velocity.length());
+        seekPos = evader.position.add(evader.velocity.toUnitVector().multiply(lookAheadTime));
+        return seek(entity);
+
     }
 
     function interpose(entity) {
@@ -135,6 +153,15 @@ function Steering(walls) {
         interposeA = null;
         interposeB = null;
         interposeOn = false;
+    }
+
+    this.pursue = function(target) {
+        evader = target;
+        pursueOn = true;
+    }
+
+    this.pursueOff = function() {
+        pursueOn = false;
     }
 
 }

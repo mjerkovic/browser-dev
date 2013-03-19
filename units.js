@@ -124,6 +124,11 @@ MovableUnit = Unit.extend({
         return this;
     },
 
+    wanderOff: function() {
+        this.steering.wanderOff();
+        return this;
+    },
+
     wallAvoidance: function() {
         this.steering.wallAvoidance();
         return this;
@@ -139,12 +144,22 @@ MovableUnit = Unit.extend({
         return this;
     },
 
+    pursue: function(target) {
+        this.steering.pursue(target);
+        return this;
+    },
+
+    pursueOff: function() {
+        this.steering.pursueOff();
+        return this;
+    },
+
     update: function() {
         if (this.goal) {
             this.goal.process(this);
         }
         var steeringForce = this.steering.calculate(this);
-        steeringForce = this._restrictTurnRate(steeringForce);
+        //steeringForce = this._restrictTurnRate(steeringForce);
         var acceleration = steeringForce.dividedBy(this.mass);
         this.velocity = this.velocity.add(acceleration).truncate(this.maxSpeed);
         this.position = this.position.add(this.velocity);
@@ -177,6 +192,12 @@ var Tank = MovableUnit.extend({
         this.missileCapacity = spec.missiles || 6;
         this.missilesFired = 0;
         this.cannon = spec.cannon;
+        this.cannon.owner = this;
+    },
+
+    update: function() {
+        this._super();
+        this.cannon.update();
     },
 
     missiles: function() {
@@ -218,7 +239,7 @@ var AutoTank = Tank.extend({
 
     update: function() {
         this._super();
-        this.cannon.aimAt(this.heading);
+        this.cannon.update();
     }
 });
 
@@ -256,6 +277,9 @@ function Cannon(spec) {
     var veloc = spec.velocity || 20;
     var angle = spec.angle || 45;
     var rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 9.81);
+    var targetingSys = spec.targetingSystem;
+    var steering = spec.steering;
+    var goal = spec.goal;
 
     this.aim = function() {
         return aimVector.dup();
@@ -271,6 +295,10 @@ function Cannon(spec) {
 
     this.range = function() {
         return rangeInMetres;
+    }
+
+    this.targetingSystem = function() {
+        return targetingSys;
     }
 
     this.aimAt = function(pos) {
@@ -293,7 +321,43 @@ function Cannon(spec) {
         };
     }
 
+    this.update = function() {
+        if (goal) {
+            goal.process(this);
+        }
+    }
+
+    this.pursue = function(target) {
+        steering.pursue(target);
+    }
+
+    this.pursueOff = function() {
+        steering.pursueOff();
+    }
+
 }
+
+var AutoCannon = MovableUnit.extend({
+
+    init: function(spec) {
+        this._super(spec);
+        this.firingVelocity = spec.firingVelocity || 20;
+        this.elevation = spec.angle || 45;
+        //this.rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 9.81);
+        this.targetingSystem = spec.targetingSystem;
+        this.owner = spec.owner;
+    },
+
+    update: function() {
+        this._super();
+        this.position = this.owner.position.dup();
+    },
+
+    alignHeading: function() {
+        this.heading = this.owner.heading.dup();
+    }
+
+});
 
 var toRadians = function(angleInDegrees) {
     return (Math.PI / 180) * angleInDegrees;
@@ -536,4 +600,32 @@ var Army = Class.extend({
         });
         return closestMine.mine;
     }
+});
+
+var TargetingSystem = Class.extend({
+
+    init: function(w) {
+        this.world = w;
+        this.target;
+    },
+
+    targetsInRange: function(position, owner, range) {
+        return this.world.vehicles.filter(function(entity) {
+            return entity != owner && position.distanceFrom(entity.position) <= range;
+        });
+    },
+
+    track: function(targetToTrack) {
+        this.target = targetToTrack;
+    },
+
+    stopTracking: function() {
+        this.target = null;
+    },
+
+    targetOutOfRange: function(position, range) {
+        return this.target == null ||
+            position.distanceFrom(this.target.position) > range;
+    }
+
 });

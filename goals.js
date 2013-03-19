@@ -141,7 +141,6 @@ var RequestMineEntryGoal = Goal.extend({
 
     process: function(entity) {
         this._super(entity);
-        console.log("Requesting mine entry");
         var bay = this.mine.requestBay();
         if (bay) {
             entity.assignBay(bay);
@@ -192,7 +191,6 @@ var ArriveAtGoal = Goal.extend({
     init: function(dest) {
         this._super("Arrive At");
         this.destination = dest;
-        console.log("Arriving at " + this.destination.x + ", " + this.destination.y);
     },
 
     activate: function(entity) {
@@ -220,7 +218,6 @@ var SeekToGoal = Goal.extend({
     init: function(dest) {
         this._super("Seek To");
         this.destination = dest;
-        console.log("Seeking to " + this.destination.x + ", " + this.destination.y);
     },
 
     activate: function(entity) {
@@ -254,7 +251,6 @@ var LeaveMineGoal = Goal.extend({
         this._super(entity);
         this.destination = entity.loadingBay.approach.outbound;
         entity.seekTo(this.destination);
-        console.log("Leaving mine");
     },
 
     process: function(entity) {
@@ -284,7 +280,6 @@ var LoadingGoal = Goal.extend({
     activate: function(entity) {
         this._super(entity);
         entity.loading = true;
-        console.log("Loading");
     },
 
     process: function(entity) {
@@ -313,7 +308,6 @@ var UnloadingGoal = Goal.extend({
     activate: function(entity) {
         this._super(entity);
         entity.loading = true;
-        console.log("Unloading");
     },
 
     process: function(entity) {
@@ -341,7 +335,27 @@ var EnemyTankGoal = ComplexGoal.extend({
     activate: function(entity) {
         this._super(entity);
         this.addSubGoalToFront(new ExploreGoal());
+    },
+
+    processSubGoals: function(entity) {
+        while(!this.subGoals.isEmpty() &&
+            (this.subGoals.peek().isCompleted() ||
+                this.subGoals.peek().hasFailed())) {
+            var subGoal = this.subGoals.shift();
+            subGoal.terminate(entity);
+        }
+        if (this.subGoals.isEmpty()) {
+            this.addSubGoalToFront(new ExploreGoal());
+        }
+        if (!this.subGoals.isEmpty()) {
+            var subGoalStatus = this.subGoals.peek().process(entity);
+            if (subGoalStatus == GoalState.Completed && this.subGoals.length > 1) {
+                return GoalState.Active;
+            }
+            return subGoalStatus;
+        }
     }
+
 });
 
 var ExploreGoal = Goal.extend({
@@ -355,7 +369,138 @@ var ExploreGoal = Goal.extend({
         entity.wander();
     },
 
+    process: function(entity) {
+        this._super(entity);
+        if (entity.cannon.targetingSystem.target) {
+            this.goalState = GoalState.Completed;
+        }
+        return this.goalState;
+    },
+
     terminate: function(entity) {
         entity.wanderOff();
     }
+});
+
+var ChaseTankGoal = Goal.extend({
+
+    init: function() {
+        this._super("Chasing Tank");
+    },
+
+    activate: function(entity) {
+        this._super(entity);
+        entity.pursue(entity.cannon.targetingSystem.target);
+        console.log("Chasing Tank");
+    },
+
+    process: function(entity) {
+        this._super(entity);
+        if (!entity.cannon.targetingSystem.target) {
+            this.goalState = GoalState.Completed;
+        }
+        return this.goalState;
+    },
+
+    terminate: function(entity) {
+        entity.pursueOff();
+    }
+
+});
+
+var LaserCannonThinkGoal = ComplexGoal.extend({
+
+    init: function() {
+        this._super("LaserCannon Think");
+    },
+
+    activate: function(entity) {
+        this._super(entity);
+        this.addSubGoalToFront(new ScanForTargetGoal());
+    },
+
+    processSubGoals: function(entity) {
+        while(!this.subGoals.isEmpty() &&
+            (this.subGoals.peek().isCompleted() ||
+                this.subGoals.peek().hasFailed())) {
+            var subGoal = this.subGoals.shift();
+            subGoal.terminate(entity);
+        }
+        if (this.subGoals.isEmpty()) {
+            if (entity.targetingSystem.target) {
+                this.addSubGoalToFront(new TrackGoal());
+            } else {
+                this.addSubGoalToFront(new ScanForTargetGoal());
+            }
+        }
+        if (!this.subGoals.isEmpty()) {
+            var subGoalStatus = this.subGoals.peek().process(entity);
+            if (subGoalStatus == GoalState.Completed && this.subGoals.length > 1) {
+                return GoalState.Active;
+            }
+            return subGoalStatus;
+        }
+    }
+
+});
+
+var ScanForTargetGoal = Goal.extend({
+
+    init: function() {
+        this._super("Scanning");
+    },
+
+    process: function(entity) {
+        this._super(entity);
+        console.log("Scanning for targets");
+        var targets = entity.targetingSystem.targetsInRange(entity.position, entity.owner, 200);
+        if (!targets.isEmpty()) {
+            entity.targetingSystem.track(this.findClosestTarget(entity, targets));
+            this.goalState = GoalState.Completed;
+            return this.goalState;
+        } else {
+            entity.alignHeading();
+        }
+    },
+
+    findClosestTarget: function(entity, targets) {
+        var closestTarget = { range: 999999, target: null};
+        targets.forEach(function(target) {
+            var range = entity.position.distanceFrom(target.position);
+            if (range < closestTarget.range) {
+                closestTarget.range = range;
+                closestTarget.target = target;
+            }
+        });
+        return closestTarget.target;
+    }
+
+});
+
+var TrackGoal = Goal.extend({
+
+    init: function(t) {
+        this._super("Tracking");
+    },
+
+    activate: function(entity) {
+        this._super(entity);
+        entity.pursue(entity.targetingSystem.target);
+        console.log("Tracking target");
+    },
+
+    process: function(entity) {
+        this._super(entity);
+        if (entity.targetingSystem.targetOutOfRange(entity.owner.position, 200)) {
+            this.goalState = GoalState.Completed;
+            return this.goalState;
+        }
+    },
+
+    terminate: function(entity) {
+        console.log("Tracking stopped");
+        entity.pursueOff();
+        entity.targetingSystem.stopTracking();
+    }
+
 });

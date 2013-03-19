@@ -47,7 +47,7 @@ function World(ctx) {
     var explosions = [];
     var craters = [];
     var bulletsFired = [];
-    var vehicles = [];
+    this.vehicles = [];
     var walls = [
         new Wall($V([0, 0]), $V([800, 0])),
         new Wall($V([800, 0]), $V([800, 700])),
@@ -59,24 +59,26 @@ function World(ctx) {
         posY: 400,
         headingX: 1,
         headingY: 0,
-        missiles: 6,
-        cannon: Armoury.simpleCannon(1, 0),
+        missiles: 1000,
+        cannon: Armoury.simpleCannon(1, 0, this),
         steering: new Steering(walls)
     });
+    var enemyCannon = Armoury.autoCannon(-0.7071, -0.7071, this)
     var enemyTank = new AutoTank({
         posX: 700,
         posY: 200,
         headingX: -0.7071,
         headingY: -0.7071,
-        missiles: 6,
-        cannon: Armoury.simpleCannon(-0,7071, -0,7071),
+        missiles: 1000,
+        cannon: enemyCannon,
         steering: new Steering(walls),
         goal: new EnemyTankGoal()
     });
+    enemyCannon.owner = enemyTank;
     tanks.push(enemyTank, playerTank);
     playerTank.wallAvoidance();
     enemyTank.wallAvoidance();
-    vehicles = vehicles.concat(tanks);
+    this.vehicles = this.vehicles.concat(tanks);
     var playerHeadQuarters = new HeadQuarters({
         posX: 48,
         posY: 48,
@@ -108,7 +110,7 @@ function World(ctx) {
         goal: new TankerThinkGoal({mine: playerMine, hq: playerHeadQuarters})
     });
     var tankers = [playerTanker];
-    vehicles = vehicles.concat(tankers);
+    this.vehicles = this.vehicles.concat(tankers);
     var playerArmy = new Army({
         hq: playerHeadQuarters,
         mines: [playerMine],
@@ -145,17 +147,18 @@ function World(ctx) {
     }
 
     this.performAction = function(pos) {
+        var that = this;
         var targetPos = $V([pos.x, pos.y]);
-        var targets = vehicles.filter(function(vehicle) {
+        var targets = this.vehicles.filter(function(vehicle) {
             return vehicle != playerTank && vehicle.intersectsPoint(targetPos);
         });
         if (targets.length == 1) {
             var target = targets.shift();
             if (playerTank.shootAt(target)) {
                 var bullet = Armoury.bullet(playerTank, target, function(bullet) {
-                    for (var i=0; i < vehicles.length; i++) {
-                        if (vehicles[i] != bullet.firedBy && vehicles[i].intersects(bullet)) {
-                            return vehicles[i];
+                    for (var i=0; i < that.vehicles.length; i++) {
+                        if (that.vehicles[i] != bullet.firedBy && that.vehicles[i].intersects(bullet)) {
+                            return that.vehicles[i];
                         }
                     }
                     return null;
@@ -242,12 +245,26 @@ function World(ctx) {
 }
 
 var Armoury = {
-    simpleCannon: function(hx, hy) {
+    simpleCannon: function(hx, hy, world) {
         return new Cannon({
             headingX: hx,
             headingY: hy,
             angle: 45,
-            velocity: 50
+            velocity: 50,
+            targetingSystem: new TargetingSystem(world),
+            steering: new Steering()
+        });
+    },
+
+    autoCannon: function(hx, hy, world) {
+        return new AutoCannon({
+            headingX: hx,
+            headingY: hy,
+            angle: 45,
+            firingVelocity: 50,
+            targetingSystem: new TargetingSystem(world),
+            steering: new Steering(),
+            goal: new LaserCannonThinkGoal()
         });
     },
 
