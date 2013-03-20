@@ -83,7 +83,7 @@ var Unit = Class.extend({
     },
 
     hit: function() {
-        this.health = Math.max(0, this.health - 0.25);
+        this.health = Math.max(0, this.health - 0.1);
     }
 });
 
@@ -382,6 +382,10 @@ var AutoCannon = MovableUnit.extend({
     targetWithinFiringAngle: function(target) {
         var toTarget = target.position.subtract(this.position).toUnitVector();
         return Math.abs(this.heading.dot(toTarget)) >= 0;
+    },
+
+    targetAcquired: function() {
+        return this.targetingSystem.targetAcquired();
     }
 
 });
@@ -653,6 +657,10 @@ var TargetingSystem = Class.extend({
     targetInRange: function(position, range) {
         return this.target != null &&
             position.distanceFrom(this.target.position) <= range;
+    },
+
+    targetAcquired: function() {
+        return this.target != null;
     }
 
 });

@@ -426,7 +426,7 @@ var LaserCannonThinkGoal = ComplexGoal.extend({
             subGoal.terminate(entity);
         }
         if (this.subGoals.isEmpty()) {
-            if (entity.targetingSystem.target) {
+            if (entity.targetAcquired()) {
                 this.addSubGoalToFront(new TrackGoal());
             } else {
                 this.addSubGoalToFront(new ScanForTargetGoal());
