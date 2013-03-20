@@ -229,8 +229,8 @@ function World(ctx) {
             var event = userEvents.shift();
             event.fire();
         }
-        playerArmy.update();
-        enemyArmy.update();
+        playerArmy.update(this);
+        enemyArmy.update(this);
         missiles.forEach(function(entity) {
             entity.update();
         });

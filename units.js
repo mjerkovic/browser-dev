@@ -154,9 +154,9 @@ MovableUnit = Unit.extend({
         return this;
     },
 
-    update: function() {
+    update: function(world) {
         if (this.goal) {
-            this.goal.process(this);
+            this.goal.process(this, world);
         }
         var steeringForce = this.steering.calculate(this);
         //steeringForce = this._restrictTurnRate(steeringForce);
@@ -195,9 +195,9 @@ var Tank = MovableUnit.extend({
         this.cannon.owner = this;
     },
 
-    update: function() {
-        this._super();
-        this.cannon.update();
+    update: function(world) {
+        this._super(world);
+        this.cannon.update(world);
     },
 
     missiles: function() {
@@ -237,9 +237,9 @@ var AutoTank = Tank.extend({
         this._super(spec);
     },
 
-    update: function() {
+    update: function(world) {
         this._super();
-        this.cannon.update();
+        this.cannon.update(world);
     }
 });
 
@@ -320,10 +320,10 @@ function Cannon(spec) {
             firedBy: firedBy
         };
     }
-
-    this.update = function() {
+                                           ,
+    this.update = function(world) {
         if (goal) {
-            goal.process(this);
+            goal.process(this, world);
         }
     }
 
@@ -348,8 +348,8 @@ var AutoCannon = MovableUnit.extend({
         this.owner = spec.owner;
     },
 
-    update: function() {
-        this._super();
+    update: function(world) {
+        this._super(world);
         this.position = this.owner.position.dup();
     },
 
@@ -580,12 +580,12 @@ var Army = Class.extend({
         this.tankers = spec.tankers;
     },
 
-    update: function() {
+    update: function(world) {
         this.tanks.forEach(function(tank) {
-            tank.update();
+            tank.update(world);
         });
         this.tankers.forEach(function(tanker) {
-            tanker.update();
+            tanker.update(world);
         });
     },
 
