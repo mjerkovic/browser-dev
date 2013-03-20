@@ -218,7 +218,7 @@ function World(ctx) {
             );
         } else {
             createExplosion(miss.position(), true);
-            explosion(miss.position());
+            explosion(miss.position(), miss.firedBy(), miss.damage());
         }
     }
 
@@ -229,11 +229,11 @@ function World(ctx) {
         }));
     }
 
-    var explosion = function(point) {
+    var explosion = function(point, firedBy, damage) {
         craters.push(point);
         tanks.forEach(function(tank) {
             if (tank.position.distanceFrom(point) < 50) {
-                tank.hit();
+                tank.hit(firedBy, damage);
             }
         });
     }
@@ -304,7 +304,8 @@ var Armoury = {
             initialHeight: missile.initialHeight(),
             currentHeight: missile.currentHeight(),
             maxHeight: missile.maxHeight(),
-            bomblet: true
+            bomblet: true,
+            damage: 0.1
         }, callback);
     },
 
@@ -314,6 +315,7 @@ var Armoury = {
             target: firedAt,
             position: firedBy.position,
             heading: heading,
+            damage: 0.1,
             hitTest: hitTest,
             completed: onCompletion
         });

@@ -82,8 +82,8 @@ var Unit = Class.extend({
         return distance <= this.radius;
     },
 
-    hit: function() {
-        this.health = Math.max(0, this.health - 0.1);
+    hit: function(firedBy, damage) {
+        this.health = Math.max(0, this.health - damage);
     }
 });
 
@@ -255,12 +255,13 @@ var Bullet = MovableUnit.extend({
         this.completed = spec.completed;
         this.range = 300;
         this.hitTest = spec.hitTest;
+        this.damage = spec.damage || 0.1;
     },
 
     update: function() {
         var victim = this.hitTest(this);
         if (victim) {
-            victim.hit();
+            victim.hit(this.firedBy, this.damage);
             this.completed(this, true);
         }
         else if (this.position.subtract(this.startingPosition).length() > this.range) {
@@ -282,6 +283,7 @@ function Cannon(spec) {
     var goal = spec.goal;
     var lastFired = new Date(0);
     var rateOfFire = 1000;
+    var damage = 0.25;
 
     this.fire = function() {
         var fireTime = new Date();
@@ -328,7 +330,8 @@ function Cannon(spec) {
             heading: { x: aimVector.X(), y: aimVector.Y() },
             firingAngle: angle,
             velocity: veloc,
-            firedBy: firedBy
+            firedBy: firedBy,
+            damage: damage
         };
     }
                                            ,
@@ -411,6 +414,8 @@ function Missile(spec, callback) {
     var impactTime = Trajectory.impactTime(veloc, angle);
     var mirv = spec.mirv || false;
     var bomblet = spec.bomblet || false;
+    var damageCaused = spec.damage;
+    var shooter = spec.firedBy;
 
     this.currentHeight = function() {
         return currHeight;
@@ -454,6 +459,14 @@ function Missile(spec, callback) {
 
     this.isBomblet = function() {
         return bomblet;
+    }
+
+    this.damage = function() {
+        return damageCaused;
+    }
+
+    this.firedBy = function() {
+        return shooter;
     }
 
     this.update = function() {
