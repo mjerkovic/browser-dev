@@ -225,7 +225,7 @@ var Tank = MovableUnit.extend({
         }
     },
 
-    shootAt: function(target, completed) {
+    shootAt: function(target) {
         var toTarget = target.position.subtract(this.position).toUnitVector();
         return Math.abs(this.heading.dot(toTarget)) <= 1;
     }
@@ -238,7 +238,7 @@ var AutoTank = Tank.extend({
     },
 
     update: function(world) {
-        this._super();
+        this._super(world);
         this.cannon.update(world);
     }
 });
@@ -346,6 +346,7 @@ var AutoCannon = MovableUnit.extend({
         //this.rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 9.81);
         this.targetingSystem = spec.targetingSystem;
         this.owner = spec.owner;
+        this.lastFired = new Date(0);
     },
 
     update: function(world) {
@@ -355,6 +356,21 @@ var AutoCannon = MovableUnit.extend({
 
     alignHeading: function() {
         this.heading = this.owner.heading.dup();
+    },
+
+    fire: function(target) {
+        var firingTime = new Date();
+        if (this.targetWithinFiringAngle(target) &&
+            (firingTime - this.lastFired >= 1000)) {
+            this.lastFired = firingTime;
+            return true;
+        }
+        return false;
+    },
+
+    targetWithinFiringAngle: function(target) {
+        var toTarget = target.position.subtract(this.position).toUnitVector();
+        return Math.abs(this.heading.dot(toTarget)) >= 0;
     }
 
 });

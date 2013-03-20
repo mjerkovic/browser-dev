@@ -489,11 +489,22 @@ var TrackGoal = Goal.extend({
     process: function(entity, world) {
         this._super(entity, world);
         if (entity.targetingSystem.targetInRange(entity.owner.position, 200)) {
-            //entity.cannon.fire();
+            if (entity.fire(entity.targetingSystem.target)) {
+                world.enemyFireBullet(entity.owner, entity.heading, entity.targetingSystem.target);
+            }
         } else {
             this.goalState = GoalState.Completed;
         }
         return this.goalState;
+    },
+
+    _canShoot: function(entity, target) {
+        return this._targetWithinFiringAngle(entity, target) && entity.fire();
+    },
+
+    _targetWithinFiringAngle: function(entity, target) {
+        var toTarget = target.position.subtract(entity.position).toUnitVector();
+        return Math.abs(entity.heading.dot(toTarget)) <= 1;
     },
 
     terminate: function(entity) {

@@ -155,7 +155,7 @@ function World(ctx) {
         if (targets.length == 1) {
             var target = targets.shift();
             if (playerTank.shootAt(target)) {
-                var bullet = Armoury.bullet(playerTank, target, function(bullet) {
+                var bullet = Armoury.bullet(playerTank, playerTank.heading, target, function(bullet) {
                     for (var i=0; i < that.vehicles.length; i++) {
                         if (that.vehicles[i] != bullet.firedBy && that.vehicles[i].intersects(bullet)) {
                             return that.vehicles[i];
@@ -174,6 +174,24 @@ function World(ctx) {
             this.movePlayerTankTo(pos);
         }
 
+    }
+
+    this.enemyFireBullet = function(enemyTank, heading, target) {
+        var that = this;
+        var bullet = Armoury.bullet(enemyTank, heading, target, function(bullet) {
+            for (var i=0; i < that.vehicles.length; i++) {
+                if (that.vehicles[i] != bullet.firedBy && that.vehicles[i].intersects(bullet)) {
+                    return that.vehicles[i];
+                }
+            }
+            return null;
+        }, function(bullet, hit) {
+            bulletsFired.splice(bulletsFired.indexOf(bullet), 1);
+            if (hit) {
+                createExplosion(bullet.position, false);
+            }
+        });
+        bulletsFired.push(bullet);
     }
 
     this.adjustFiringAngle = function(angleDelta) {
@@ -290,12 +308,12 @@ var Armoury = {
         }, callback);
     },
 
-    bullet: function(firedBy, firedAt, hitTest, onCompletion) {
+    bullet: function(firedBy, heading, firedAt, hitTest, onCompletion) {
         return new Bullet({
             firedBy: firedBy,
             target: firedAt,
             position: firedBy.position,
-            heading: firedBy.heading,
+            heading: heading,
             hitTest: hitTest,
             completed: onCompletion
         });
