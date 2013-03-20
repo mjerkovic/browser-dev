@@ -227,7 +227,7 @@ var Tank = MovableUnit.extend({
 
     shootAt: function(target) {
         var toTarget = target.position.subtract(this.position).toUnitVector();
-        return Math.abs(this.heading.dot(toTarget)) <= 1;
+        return Math.abs(this.heading.dot(toTarget)) >= 0 && this.cannon.fire();
     }
 
 });
@@ -280,6 +280,17 @@ function Cannon(spec) {
     var targetingSys = spec.targetingSystem;
     var steering = spec.steering;
     var goal = spec.goal;
+    var lastFired = new Date(0);
+    var rateOfFire = 1000;
+
+    this.fire = function() {
+        var fireTime = new Date();
+        if (fireTime - lastFired >= rateOfFire) {
+            lastFired = fireTime;
+            return true;
+        }
+        return false;
+    }
 
     this.aim = function() {
         return aimVector.dup();
