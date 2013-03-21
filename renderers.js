@@ -88,7 +88,7 @@ var WorldRenderer = Renderer.extend({
         ctx.strokeStyle = "FFFF00";
         ctx.strokeRect(BATTLEFIELD_WIDTH + 5, 0, 195, 102);
         ctx.translate(BATTLEFIELD_WIDTH + 5, 100);
-        var angleOfTurret = (Math.PI / 180) * -this.playerTank.cannon.elevation();
+        var angleOfTurret = (Math.PI / 180) * -this.playerTank.cannon.elevation;
         ctx.beginPath();
         ctx.arc(0, 0, 30, 0, angleOfTurret, true);
         ctx.stroke();
@@ -98,7 +98,7 @@ var WorldRenderer = Renderer.extend({
         ctx.save();
         ctx.fillStyle = "yellow";
         ctx.font = "bold 48px Arial";
-        ctx.fillText(this.playerTank.cannon.elevation() + "\u00B0", BATTLEFIELD_WIDTH + 115, 65);
+        ctx.fillText(this.playerTank.cannon.elevation + "\u00B0", BATTLEFIELD_WIDTH + 115, 65);
         ctx.restore();
     },
 
@@ -217,11 +217,11 @@ var TrajectoryRenderer = Renderer.extend({
         ctx.stroke();
         ctx.moveTo(0, 0);
 
-        var firingVelocity = this.tank.cannon.velocity();
-        var elevation = this.tank.cannon.elevation();
+        var firingVelocity = this.tank.cannon.firingVelocity;
+        var elevation = this.tank.cannon.elevation;
         var maxHeight = Trajectory.maxHeight(firingVelocity, elevation);
         var impactTime = Trajectory.impactTime(firingVelocity, elevation);
-        var firingRange = this.tank.cannon.range();
+        var firingRange = Trajectory.rangeInMetres(firingVelocity, elevation);
         var scaleX = (firingRange > 200) ? 200 / firingRange : 1;
         var scaleY = (maxHeight > 200) ? 200 / maxHeight : 1;
         ctx.scale(scaleX, scaleY);

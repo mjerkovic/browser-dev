@@ -209,7 +209,7 @@ var Tank = MovableUnit.extend({
     },
 
     aim: function() {
-        return this.cannon.aim();
+        return this.cannon.heading;
     },
 
     aimAt: function(mousePos) {
@@ -227,7 +227,7 @@ var Tank = MovableUnit.extend({
 
     shootAt: function(target) {
         var toTarget = target.position.subtract(this.position).toUnitVector();
-        var angle = this.cannon.aim().dot(toTarget);
+        var angle = this.cannon.heading.dot(toTarget);
         return angle >= 0.95 && angle <= 1 && this.cannon.fire();
     }
 
@@ -273,84 +273,48 @@ var Bullet = MovableUnit.extend({
     }
 });
 
-function Cannon(spec) {
+var Cannon = MovableUnit.extend({
 
-    var aimVector = $V([spec.headingX, spec.headingY]);
-    var veloc = spec.velocity || 20;
-    var angle = spec.angle || 45;
-    var rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 19.621);
-    var targetingSys = spec.targetingSystem;
-    var steering = spec.steering;
-    var goal = spec.goal;
-    var lastFired = new Date(0);
-    var rateOfFire = 1000;
-    var damage = 0.25;
+    init: function(spec) {
+        this._super(spec);
+        this.firingVelocity = spec.firingVelocity || 20;
+        this.elevation = spec.angle || 45;
+        this.targetingSystem = spec.targetingSystem;
+        this.lastFired = new Date(0);
+        this.rateOfFire = spec.rateOfFire || 1000;
+        this.damage = spec.damage || 0.25;
+    },
 
-    this.fire = function() {
+    fire: function() {
         var fireTime = new Date();
-        if (fireTime - lastFired >= rateOfFire) {
-            lastFired = fireTime;
+        if (fireTime - this.lastFired >= this.rateOfFire) {
+            this.lastFired = fireTime;
             return true;
         }
         return false;
-    }
+    },
 
-    this.aim = function() {
-        return aimVector.dup();
-    }
+    aimAt: function(pos) {
+        this.heading = pos.dup().toUnitVector();
+        this.velocity = this.heading;
+    },
 
-    this.elevation = function() {
-        return angle;
-    }
+    elevateTo: function(angleInDegrees) {
+        this.elevation = Math.min(Math.max(0, this.elevation + angleInDegrees), 90);
+    },
 
-    this.velocity = function() {
-        return veloc;
-    }
-
-    this.range = function() {
-        return rangeInMetres;
-    }
-
-    this.targetingSystem = function() {
-        return targetingSys;
-    }
-
-    this.aimAt = function(pos) {
-        aimVector = pos.dup().toUnitVector()
-    }
-
-    this.elevateTo = function(angleInDegrees) {
-        angle = Math.min(Math.max(0, angle + angleInDegrees), 90);
-        rangeInMetres = Math.floor((2 * Math.pow(veloc, 2) * Math.sin(toRadians(angle)) * Math.cos(toRadians(angle))) / 19.621);
-    }
-
-    this.fireMissile = function(firedBy) {
+    fireMissile: function(firedBy) {
         return {
-            position: { x: firedBy.position.X() + ((Math.cos(toRadians(angle)) * aimVector.X()) * 20),
-                y: firedBy.position.Y() + ((Math.sin(toRadians(angle)) * aimVector.Y()) * 20) },
-            heading: { x: aimVector.X(), y: aimVector.Y() },
-            firingAngle: angle,
-            velocity: veloc,
+            position: { x: firedBy.position.X() + ((Math.cos(toRadians(this.elevation)) * this.heading.X()) * 20),
+                y: firedBy.position.Y() + ((Math.sin(toRadians(this.elevation)) * this.heading.Y()) * 20) },
+            heading: { x: this.heading.X(), y: this.heading.Y() },
+            firingAngle: this.elevation,
+            velocity: this.firingVelocity,
             firedBy: firedBy,
-            damage: damage
+            damage: this.damage
         };
     }
-                                           ,
-    this.update = function(world) {
-        if (goal) {
-            goal.process(this, world);
-        }
-    }
-
-    this.pursue = function(target) {
-        steering.pursue(target);
-    }
-
-    this.pursueOff = function() {
-        steering.pursueOff();
-    }
-
-}
+});
 
 var AutoCannon = MovableUnit.extend({
 
@@ -483,24 +447,28 @@ function Missile(spec, callback) {
     }
 }
 
-function Explosion(pos, showBlastRange, endFunction) {
-    this.x = pos.X();
-    this.y = pos.Y();
-    this.blastRange = showBlastRange;
-    var frame = 0;
+var Explosion = Unit.extend({
 
-    this.currentFrame = function() {
-        frame++;
-        return frame;
+    init: function(pos, showBlastRange, endFunction) {
+        this.x = pos.X();
+        this.y = pos.Y();
+        this.blastRange = showBlastRange;
+        this.frame = 0;
+        this.finish = endFunction;
     },
 
-    this.finish = function(frameCount) {
-        if (frame == frameCount - 1) {
-            endFunction(this);
+    currentFrame: function() {
+        this.frame++;
+        return this.frame;
+    },
+
+    finish: function(frameCount) {
+        if (this.frame == frameCount - 1) {
+            this.finish(this);
         }
     }
 
-}
+});
 
 var HeadQuarters = Unit.extend({
     init: function(spec) {

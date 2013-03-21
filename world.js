@@ -155,7 +155,7 @@ function World(ctx) {
         if (targets.length == 1) {
             var target = targets.shift();
             if (playerTank.shootAt(target)) {
-                var bullet = Armoury.bullet(playerTank, playerTank.cannon.aim(), target, function(bullet) {
+                var bullet = Armoury.bullet(playerTank, playerTank.aim(), target, function(bullet) {
                     for (var i=0; i < that.vehicles.length; i++) {
                         if (that.vehicles[i] != bullet.firedBy && that.vehicles[i].intersects(bullet)) {
                             return that.vehicles[i];
@@ -268,7 +268,7 @@ var Armoury = {
             headingX: hx,
             headingY: hy,
             angle: 45,
-            velocity: 50,
+            firingVelocity: 50,
             targetingSystem: new TargetingSystem(world),
             steering: new Steering()
         });

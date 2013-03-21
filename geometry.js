@@ -91,6 +91,7 @@ function lineIntersects(position, feeler, from, to) {
 }
 
 var Trajectory = {
+
     maxHeight: function(velocity, angleInDegrees, initialHeight) {
         var yVelocity = velocity * Math.sin(toRadians(angleInDegrees));
         return (Math.pow(yVelocity, 2) + (initialHeight || 0)) / 19.6;
@@ -99,5 +100,12 @@ var Trajectory = {
     impactTime: function(velocity, angleInDegrees) {
         return ((velocity * Math.sin(toRadians(angleInDegrees))) +
             Math.sqrt(Math.pow((velocity * Math.sin(toRadians(angleInDegrees))),2))) / 19.62;
+    },
+
+    rangeInMetres: function(velocity, angleInDegrees) {
+        return Math.floor((2 * Math.pow(velocity, 2) *
+            Math.sin(toRadians(angleInDegrees)) *
+            Math.cos(toRadians(angleInDegrees))) / 19.621);
     }
+
 }
