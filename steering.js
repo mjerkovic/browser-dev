@@ -11,6 +11,9 @@ function Steering(walls) {
     var interposeB;
     var pursueOn = false;
     var evader;
+    var stalkOn = false;
+    var stalkTarget;
+    var stalkRange;
 
     this.calculate = function(entity) {
         var steeringForce = Vector.Zero(2);
@@ -50,7 +53,16 @@ function Steering(walls) {
             return desiredVelocity.subtract(entity.velocity);
         }
         return Vector.Zero(2);
+    }
 
+    var stalk = function(entity) {
+        var desiredVelocity = stalkTarget.position.subtract(entity.position);
+        var desiredDistance = desiredVelocity.length() - stalkTarget.radius;
+        if (desiredDistance > stalkRange) {
+            arrivePos = desiredVelocity.toUnitVector().multiply(desiredDistance);
+            return arrive(entity);
+        }
+        return Vector.Zero(2);
     }
 
     var wander = function(entity) {
@@ -162,6 +174,16 @@ function Steering(walls) {
 
     this.pursueOff = function() {
         pursueOn = false;
+    }
+
+    this.stalkTarget = function(target, range) {
+        stalkTarget = target;
+        stalkRange = range;
+        stalkOn = true;
+    }
+
+    this.stalkOff = function() {
+        stalkOn = false;
     }
 
 }

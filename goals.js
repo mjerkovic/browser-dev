@@ -337,6 +337,17 @@ var EnemyTankGoal = ComplexGoal.extend({
         this.addSubGoalToFront(new ExploreGoal());
     },
 
+    process: function(entity, world) {
+        this.removeAllSubGoals(entity);
+        if (entity.cannon.targetAcquired()) {
+            this.addSubGoalToFront(new StalkTargetGoal());
+        } else {
+            this.addSubGoalToFront(new ExploreGoal());
+        }
+        this._super(entity, world);
+    }
+
+/*
     processSubGoals: function(entity, world) {
         while(!this.subGoals.isEmpty() &&
             (this.subGoals.peek().isCompleted() ||
@@ -355,6 +366,7 @@ var EnemyTankGoal = ComplexGoal.extend({
             return subGoalStatus;
         }
     }
+*/
 
 });
 
@@ -379,6 +391,26 @@ var ExploreGoal = Goal.extend({
 
     terminate: function(entity) {
         entity.wanderOff();
+    }
+});
+
+var StalkTargetGoal = Goal.extend({
+
+    activate: function(entity) {
+        this._super(entity);
+        entity.steering.stalkTarget(entity.cannon.targetingSystem.target, 100);
+    },
+
+    process: function(entity, world) {
+        this._super(entity, world);
+        if (!entity.cannon.targetAcquired()) {
+            this.goalState = GoalState.Completed;
+        }
+        return this.goalState;
+    },
+
+    terminate: function(entity) {
+        entity.steering.stalkOff();
     }
 });
 
