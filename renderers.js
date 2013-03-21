@@ -78,7 +78,7 @@ var WorldRenderer = Renderer.extend({
 
     _drawSidePanel: function(ctx, imageLibrary) {
         this._drawFiringAngle(ctx);
-        this._drawMissiles(ctx, imageLibrary);
+        //this._drawMissiles(ctx, imageLibrary);
     },
 
     _drawFiringAngle: function(ctx) {
