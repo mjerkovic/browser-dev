@@ -227,7 +227,8 @@ var Tank = MovableUnit.extend({
 
     shootAt: function(target) {
         var toTarget = target.position.subtract(this.position).toUnitVector();
-        return Math.abs(this.heading.dot(toTarget)) >= 0 && this.cannon.fire();
+        var angle = this.cannon.aim().dot(toTarget);
+        return angle >= 0.95 && angle <= 1 && this.cannon.fire();
     }
 
 });
