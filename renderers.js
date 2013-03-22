@@ -1,5 +1,7 @@
 const APP_WIDTH = 1300;
 const APP_HEIGHT = 700;
+const WORLD_WIDTH = 3300;
+const WORLD_HEIGHT = 2100;
 const BATTLEFIELD_WIDTH = 1100;
 const BATTLEFIELD_HEIGHT = 700;
 const INFO_PANEL_WIDTH = 200;
@@ -410,3 +412,42 @@ var TankerRenderer = Renderer.extend({
     }
 
 });
+
+var ArrowRenderer = Renderer.extend({
+
+    render: function(ctx, imageLibrary) {
+        ctx.save();
+        for (var prop in Arrows) {
+            if (Arrows.hasOwnProperty(prop)) {
+                var arrow = Arrows[prop];
+                ctx.drawImage(imageLibrary.arrowsImg, arrow.imgX, arrow.imgY, 27, 28, arrow.x, arrow.y, 27, 28);
+            }
+        }
+        ctx.restore();
+    }
+
+});
+
+var Arrows = {
+
+    NW: {x: 0, y: 0, imgX: 1, imgY: 1 },
+    N:  {x: 536, y: 0, imgX: 31, imgY: 1 },
+    NE: {x: 1072, y: 0, imgX: 61, imgY: 1 },
+    W:  {x: 0, y: 336, imgX: 1, imgY: 30 },
+    E:  {x: 1072, y: 336, imgX: 61, imgY: 30 },
+    SW: {x: 0, y: 672, imgX: 1, imgY: 60 },
+    S:  {x: 536, y: 672, imgX: 31, imgY: 60 },
+    SE:  {x: 1072, y: 672, imgX: 61, imgY: 60 },
+
+    directionFor: function(x, y) {
+        for (var prop in Arrows) {
+            if (Arrows.hasOwnProperty(prop)) {
+                var arrow = Arrows[prop];
+                if (pointInRectangle(arrow.x, arrow.y, 27, 28, x, y)) {
+                    return prop;
+                }
+            }
+        }
+    }
+
+}

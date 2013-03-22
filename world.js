@@ -16,6 +16,8 @@ function World(ctx) {
     blueTurretImage.src = 'images/blue_turret.png';
     var tankerImage = new Image();
     tankerImage.src = 'images/vehicles.png';
+    var arrowsImage = new Image();
+    arrowsImage.src = 'images/arrows-sprite.png';
     var imageLibrary = {
         mainImg: singleImage,
         playerTurretImg: greenTurretImage,
@@ -40,7 +42,8 @@ function World(ctx) {
             { x: 561, y: 330, w: 31, h: 31 },
             { x: 528, y: 330, w: 31, h: 31 },
             { x: 594, y: 165, w: 31, h: 31 }
-        ]
+        ],
+        arrowsImg: arrowsImage
     };
     var missiles = [];
     var tanks = [];
@@ -123,6 +126,15 @@ function World(ctx) {
         tanks: [enemyTank],
         tankers: []
     });
+    var nwQuadrant = new Quadrant(0, 0);
+    var nQuadrant = new Quadrant(1100, 0);
+    var neQuadrant = new Quadrant(2200, 0);
+    var wQuadrant = new Quadrant(0, 700);
+    var cQuadrant = new Quadrant(1100, 700);
+    var eQuadrant = new Quadrant(2200, 700);
+    var swQuadrant = new Quadrant(0, 1400);
+    var sQuadrant = new Quadrant(1100, 1400);
+    var seQuadrant = new Quadrant(2200, 1400);
     var playerTankRenderer = new PlayerTankRenderer(playerTank);
     var trajectoryRenderer = new TrajectoryRenderer(playerTank);
     var enemyTankRenderer = new EnemyTankRenderer(enemyTank);
@@ -133,9 +145,11 @@ function World(ctx) {
     var headQuartersRenderer = new HeadQuartersRenderer(headquarters);
     var tankerRenderer = new TankerRenderer(tankers);
     var mineRenderer = new MineRenderer(mines);
+    var arrowRenderer = new ArrowRenderer();
     var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, imageLibrary,
         [worldRenderer, headQuartersRenderer, mineRenderer, trajectoryRenderer, playerTankRenderer, enemyTankRenderer,
-            tankerRenderer, bulletRenderer, explosionRenderer, missileRenderer]);
+            tankerRenderer, bulletRenderer, explosionRenderer, missileRenderer,
+            arrowRenderer]);
     var userEvents = [];
 
     this.movePlayerTankTo = function(pos) {
@@ -149,31 +163,35 @@ function World(ctx) {
     this.performAction = function(pos) {
         var that = this;
         var targetPos = $V([pos.x, pos.y]);
-        var targets = this.vehicles.filter(function(vehicle) {
-            return vehicle != playerTank && vehicle.intersectsPoint(targetPos);
-        });
-        if (targets.length == 1) {
-            var target = targets.shift();
-            if (playerTank.shootAt(target)) {
-                var bullet = Armoury.bullet(playerTank, playerTank.aim(), target, function(bullet) {
-                    for (var i=0; i < that.vehicles.length; i++) {
-                        if (that.vehicles[i] != bullet.firedBy && that.vehicles[i].intersects(bullet)) {
-                            return that.vehicles[i];
-                        }
-                    }
-                    return null;
-                }, function(bullet, hit) {
-                    bulletsFired.splice(bulletsFired.indexOf(bullet), 1);
-                    if (hit) {
-                        createExplosion(bullet.position, false);
-                    }
-                });
-                bulletsFired.push(bullet);
-            }
+        var direction = Arrows.directionFor(pos.x, pos.y);
+        if (direction) {
+            console.log(direction);
         } else {
-            this.movePlayerTankTo(pos);
+            var targets = this.vehicles.filter(function(vehicle) {
+                return vehicle != playerTank && vehicle.intersectsPoint(targetPos);
+            });
+            if (targets.length == 1) {
+                var target = targets.shift();
+                if (playerTank.shootAt(target)) {
+                    var bullet = Armoury.bullet(playerTank, playerTank.aim(), target, function(bullet) {
+                        for (var i=0; i < that.vehicles.length; i++) {
+                            if (that.vehicles[i] != bullet.firedBy && that.vehicles[i].intersects(bullet)) {
+                                return that.vehicles[i];
+                            }
+                        }
+                        return null;
+                    }, function(bullet, hit) {
+                        bulletsFired.splice(bulletsFired.indexOf(bullet), 1);
+                        if (hit) {
+                            createExplosion(bullet.position, false);
+                        }
+                    });
+                    bulletsFired.push(bullet);
+                }
+            } else {
+                this.movePlayerTankTo(pos);
+            }
         }
-
     }
 
     this.enemyFireBullet = function(enemyTank, heading, target) {

@@ -90,6 +90,13 @@ function lineIntersects(position, feeler, from, to) {
     return { intersects: false, distance: 0, intersectionPoint: Vector.Zero(2) };
 }
 
+function pointInRectangle(recX, recY, width, height, x, y) {
+    return (x <= recX + width &&
+            x >= recX &&
+            y <= recY + height &&
+            y >= recY);
+}
+
 var Trajectory = {
 
     maxHeight: function(velocity, angleInDegrees, initialHeight) {
