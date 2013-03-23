@@ -65,6 +65,7 @@ var WorldRenderer = Renderer.extend({
         this._drawBackground(ctx, imageLibrary);
         this._drawCraters(ctx, imageLibrary);
         this._drawSidePanel(ctx, imageLibrary);
+        this._drawMap(ctx, viewPort);
     },
 
     _drawBackground: function(ctx, imageLibrary) {
@@ -121,6 +122,20 @@ var WorldRenderer = Renderer.extend({
             ctx.drawImage(imageLibrary.mainImg, 132, 33, 30, 30, 0, missileY, 60, 60);
             missileY = missileY + 60;
         }
+        ctx.restore();
+    },
+
+    _drawMap: function(ctx, viewPort) {
+        ctx.save();
+        ctx.strokeStyle = "FFFF00";
+        ctx.strokeRect(BATTLEFIELD_WIDTH + 5, 0, 195, 102);
+        ctx.translate(BATTLEFIELD_WIDTH + 5, 312);
+        ctx.strokeRect(0, 0, 200, WORLD_HEIGHT * (200 / WORLD_WIDTH));
+        var scaledX = INFO_PANEL_WIDTH / WORLD_WIDTH;
+        var scaledY = (WORLD_HEIGHT * (200 / WORLD_WIDTH)) / WORLD_HEIGHT;
+        ctx.scale(scaledX, scaledY);
+        ctx.lineWidth = 7;
+        ctx.strokeRect(viewPort.position.X(), viewPort.position.Y(), BATTLEFIELD_WIDTH, BATTLEFIELD_HEIGHT);
         ctx.restore();
     }
 
@@ -455,14 +470,14 @@ var ArrowRenderer = Renderer.extend({
 
 var Arrows = {
 
-    NW: {x: 0, y: 0, imgX: 1, imgY: 1 },
-    N:  {x: 536, y: 0, imgX: 31, imgY: 1 },
-    NE: {x: 1072, y: 0, imgX: 61, imgY: 1 },
-    W:  {x: 0, y: 336, imgX: 1, imgY: 30 },
-    E:  {x: 1072, y: 336, imgX: 61, imgY: 30 },
-    SW: {x: 0, y: 672, imgX: 1, imgY: 60 },
-    S:  {x: 536, y: 672, imgX: 31, imgY: 60 },
-    SE:  {x: 1072, y: 672, imgX: 61, imgY: 60 },
+    NW: {x: 0, y: 0, imgX: 1, imgY: 1, orientation: $V([-1, -1]) },
+    N:  {x: 536, y: 0, imgX: 31, imgY: 1, orientation: $V([0, -1]) },
+    NE: {x: 1072, y: 0, imgX: 61, imgY: 1, orientation: $V([1, -1]) },
+    W:  {x: 0, y: 336, imgX: 1, imgY: 30, orientation: $V([-1, 0]) },
+    E:  {x: 1072, y: 336, imgX: 61, imgY: 30, orientation: $V([1, 0]) },
+    SW: {x: 0, y: 672, imgX: 1, imgY: 60, orientation: $V([-1, 1]) },
+    S:  {x: 536, y: 672, imgX: 31, imgY: 60, orientation: $V([0, 1]) },
+    SE:  {x: 1072, y: 672, imgX: 61, imgY: 60, orientation: $V([1, 1]) },
 
     directionFor: function(x, y) {
         for (var prop in Arrows) {
@@ -473,6 +488,10 @@ var Arrows = {
                 }
             }
         }
+    },
+
+    orientation: function(direction) {
+        return this[direction].orientation;
     }
 
 }

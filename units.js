@@ -663,7 +663,7 @@ var Viewport = Unit.extend({
             this.position.eql(this.quadrant.position)) {
             var quadrantNo = this.quadrant.neighbours[direction];
             this.quadrant = this.quadrants.byNumber(quadrantNo);
-            this.movementDelta = this.quadrant.position.subtract(this.position).toUnitVector();
+            this.movementDelta = Arrows.orientation(direction);
         }
     },
 
