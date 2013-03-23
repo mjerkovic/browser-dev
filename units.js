@@ -78,7 +78,6 @@ var Unit = Class.extend({
 
     intersectsPoint: function(point) {
         var distance = this.position.distanceFrom(point);
-        console.log(distance);
         return distance <= this.radius;
     },
 
@@ -452,7 +451,9 @@ var Explosion = Unit.extend({
     init: function(pos, showBlastRange, endFunction) {
         this.x = pos.X();
         this.y = pos.Y();
+        this.position = pos.dup();
         this.blastRange = showBlastRange;
+        this.radius = 16;
         this.frame = 0;
         this.finish = endFunction;
     },
@@ -651,57 +652,53 @@ var Viewport = Unit.extend({
 
     init: function(spec) {
         this._super(spec);
-        this.requestedPos = Vector.Zero(2);
+        this.quadrant = spec.currentQuadrant;
+        this.position = this.quadrant.position.dup();
+        this.quadrants = spec.quadrants;
         this.movementDelta = Vector.Zero(2);
     },
 
-    // x and y will be -1 <= x/y <= 1
-    moveBy: function(x, y) {
-        if (!this.position.eql(this.requestedPos)) {
-            return;
+    move: function(direction) {
+        if (this.quadrant.neighbours[direction] &&
+            this.position.eql(this.quadrant.position)) {
+            var quadrantNo = this.quadrant.neighbours[direction];
+            this.quadrant = this.quadrants.byNumber(quadrantNo);
+            this.movementDelta = this.quadrant.position.subtract(this.position).toUnitVector();
         }
-        var requestedX = requestedPos.X() + (x * BATTLEFIELD_WIDTH);
-        var requestedY = requestedPos.Y() + (y * BATTLEFIELD_HEIGHT);
-        var deltaX = (requestedX < 0 || requestedX > WORLD_WIDTH) ? 0 : x;
-        var deltaY = (requestedY < 0 || requestedY > WORLD_HEIGHT) ? 0 : y;
-        requestedX = Math.max(0, Math.min(requestedX, WORLD_WIDTH));
-        requestedY = Math.max(0, Math.min(requestedY, WORLD_HEIGHT));
-        this.requestedPos.setElements([[requestedX, requestedY]]);
-        this.heading.setElements([deltaX, deltaY]);
     },
 
     update: function() {
-        if (!this.position.eql(this.requestedPos)) {
-            this.position = this.position.add(this.heading.multiply(10));
+        if (!this.position.eql(this.quadrant.position)) {
+            this.position = this.position.add(this.movementDelta.multiply(10));
         }
+    },
+
+    contains: function(entity) {
+        return pointInRectangle(this.position.X(), this.position.Y(),
+            BATTLEFIELD_WIDTH, BATTLEFIELD_HEIGHT, entity.position.X(),
+            entity.position.Y(), entity.radius);
     }
 
 });
 
-var Dir = {
-    N :  { delta: { x: 0, y: -1 } },
-    NE : { delta: { x: 0.7071, y: -0.7071 } },
-    E :  { delta: { x: 1, y: 0 } },
-    SE : { delta: { x: 0.7071, y: 0.7071 } },
-    S :  { delta: { x: 0, y: 1 } },
-    SW : { delta: { x: -0.7071, y: 0.7071 } },
-    W :  { delta: { x: -1, y: 0 } },
-    NW : { delta: { x: 0.7071, y: -0.7071 } }
-}
-
 var Quadrant = Class.extend({
 
-    init: function(posx, posy) {
-        this.x = posx;
-        this.y = posy;
+    init: function(num, posx, posy, connections) {
+        this.number = num;
+        this.position = $V([posx, posy]);
+        this.neighbours = connections;
         this.width = BATTLEFIELD_WIDTH;
         this.height = BATTLEFIELD_HEIGHT;
     }
 });
 
-var QuadrantNode = Class.extend({
+var Quadrants = function(quads) {
 
-    init: function(quad, quadNeighbours) {
-
+    this.byNumber =  function(num) {
+        var result = quads.filter(function(quad) {
+            return quad.number == num;
+        });
+        return result[0];
     }
-});
+
+}

@@ -90,11 +90,11 @@ function lineIntersects(position, feeler, from, to) {
     return { intersects: false, distance: 0, intersectionPoint: Vector.Zero(2) };
 }
 
-function pointInRectangle(recX, recY, width, height, x, y) {
-    return (x <= recX + width &&
-            x >= recX &&
-            y <= recY + height &&
-            y >= recY);
+function pointInRectangle(recX, recY, width, height, x, y, radius) {
+    return (x - radius <= recX + width &&
+            x + radius >= recX &&
+            y - radius <= recY + height &&
+            y + radius >= recY);
 }
 
 var Trajectory = {

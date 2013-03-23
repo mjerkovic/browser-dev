@@ -7,11 +7,11 @@ const BATTLEFIELD_HEIGHT = 700;
 const INFO_PANEL_WIDTH = 200;
 const INFO_PANEL_HEIGHT = 700;
 
-function GameRenderer(ctx, width, height, imageLibrary, renderers) {
+function GameRenderer(ctx, width, height, imageLibrary, viewPort, renderers) {
     this.render = function() {
         ctx.clearRect(0, 0, height, width);
         renderers.forEach(function(renderer) {
-            renderer.render(ctx, imageLibrary);
+            renderer.render(ctx, imageLibrary, viewPort);
         });
     }
 }
@@ -23,7 +23,7 @@ var Renderer = Class.extend({
         return (vector.X() < 0) ? -result : result;
     },
 
-    _drawHealthBar: function(ctx, entity, offset) {
+    _drawHealthBar: function(ctx, viewPort, entity, offset) {
         var fillColour;
         if (entity.health <= 0.33) {
             fillColour = "FF0000";
@@ -34,12 +34,21 @@ var Renderer = Class.extend({
         }
         ctx.save();
         ctx.fillStyle = "000000";
-        ctx.fillRect(entity.position.X() - 15, entity.position.Y() - offset, 30, 10);
+        var posX = entity.position.X() - viewPort.position.X();
+        var posY = entity.position.Y() - viewPort.position.Y();
+        ctx.fillRect(posX - 15, posY - offset, 30, 10);
         ctx.restore();
         ctx.save();
         ctx.fillStyle = fillColour;
-        ctx.fillRect(entity.position.X() - 14, entity.position.Y() - (offset - 1), 28 * entity.health, 8);
+        ctx.fillRect(posX - 14, posY - (offset - 1), 28 * entity.health, 8);
         ctx.restore();
+
+    },
+
+    _visibleEntities: function(viewPort, collection) {
+        return collection.filter(function(entity) {
+            return viewPort.contains(entity);
+        });
 
     }
 
@@ -52,7 +61,7 @@ var WorldRenderer = Renderer.extend({
         this.craters = craterz;
     },
 
-    render: function(ctx, imageLibrary) {
+    render: function(ctx, imageLibrary, viewPort) {
         this._drawBackground(ctx, imageLibrary);
         this._drawCraters(ctx, imageLibrary);
         this._drawSidePanel(ctx, imageLibrary);
@@ -125,9 +134,13 @@ var PlayerTankRenderer = Renderer.extend({
         this.tank = t;
     },
 
-	render: function(ctx, imageLibrary) {
+	render: function(ctx, imageLibrary, viewPort) {
+        if (!viewPort.contains(this.tank)) {
+            return;
+        }
 		ctx.save();
-		ctx.translate(this.tank.position.X(), this.tank.position.Y());
+		ctx.translate(this.tank.position.X() - viewPort.position.X(),
+            this.tank.position.Y() - viewPort.position.Y());
 		ctx.rotate(this._angleFrom(this.tank.heading));
         var tankImgPos = imageLibrary.playerImgPos;
         var imgPos = (this.tank.velocity.length() >= 0 && this.tank.velocity.length() < 0.4) ? tankImgPos.length - 1 : this.frame % tankImgPos.length;
@@ -137,12 +150,13 @@ var PlayerTankRenderer = Renderer.extend({
         this.frame = (this.frame == tankImgPos.length - 1) ? 0 : this.frame + 1;
 
         ctx.save();
-        ctx.translate(this.tank.position.X(), this.tank.position.Y());
+        ctx.translate(this.tank.position.X() - viewPort.position.X(),
+            this.tank.position.Y() - viewPort.position.Y());
         ctx.rotate(this._angleFrom(this.tank.aim()));
         ctx.drawImage(imageLibrary.playerTurretImg, 0, 0, 32, 32, -16, -16, 32, 32);
         ctx.restore();
 
-        this._drawHealthBar(ctx, this.tank, 30);
+        this._drawHealthBar(ctx, viewPort, this.tank, 30);
 
         if (showFeelers) {
             ctx.save();
@@ -166,9 +180,13 @@ var EnemyTankRenderer = Renderer.extend({
         this.tank = t;
     },
 
-    render: function(ctx, imageLibrary) {
+    render: function(ctx, imageLibrary, viewPort) {
+        if (!viewPort.contains(this.tank)) {
+            return;
+        }
         ctx.save();
-        ctx.translate(this.tank.position.X(), this.tank.position.Y());
+        ctx.translate(this.tank.position.X() - viewPort.position.X(),
+            this.tank.position.Y() - viewPort.position.Y());
         ctx.rotate(this._angleFrom(this.tank.heading));
         var tankImgPos = imageLibrary.enemyImgPos;
         var imgPos = (this.tank.velocity.length() >= 0 && this.tank.velocity.length() < 0.4) ? tankImgPos.length - 1 : this.frame % tankImgPos.length;
@@ -178,12 +196,13 @@ var EnemyTankRenderer = Renderer.extend({
         this.frame = (this.frame == tankImgPos.length - 1) ? 0 : this.frame + 1;
 
         ctx.save();
-        ctx.translate(this.tank.position.X(), this.tank.position.Y());
+        ctx.translate(this.tank.position.X() - viewPort.position.X(),
+            this.tank.position.Y() - viewPort.position.Y());
         ctx.rotate(this._angleFrom(this.tank.cannon.heading));
         ctx.drawImage(imageLibrary.enemyTurretImg, 0, 0, 32, 32, -16, -16, 32, 32);
         ctx.restore();
 
-        this._drawHealthBar(ctx, this.tank, 30);
+        this._drawHealthBar(ctx, viewPort, this.tank, 30);
 
         if (showFeelers) {
             ctx.save();
@@ -266,16 +285,17 @@ var ExplosionRenderer = Renderer.extend({
         this.frames = [{"x": 33, "y": 31}, {"x": 66, "y": 31}, {"x": 99, "y": 30}];
     },
 
-    render: function(ctx, imageLibrary) {
+    render: function(ctx, imageLibrary, viewPort) {
         var that = this;
-        this.explosions.forEach(function(explosion) {
+        this._visibleEntities(viewPort, this.explosions).forEach(function(explosion) {
             var frame = explosion.currentFrame();
             if (explosion.blastRange) {
                 ctx.save();
                 ctx.fillStyle = "FF0000";
                 ctx.globalAlpha = 0.2;
                 ctx.beginPath();
-                ctx.arc(explosion.x, explosion.y, 50, 0, Math.PI * 2);
+                ctx.arc(explosion.position.X() - viewPort.position.X(),
+                    explosion.position.Y() - viewPort.position.Y(), 50, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
             }
@@ -294,7 +314,7 @@ var MissileRenderer = Renderer.extend({
         this.missiles = miss;
     },
 
-    render: function(ctx, imageLibrary) {
+    render: function(ctx, imageLibrary, viewPort) {
         var that = this;
         this.missiles.forEach(function(missile, idx) {
             ctx.save();
@@ -328,10 +348,11 @@ var BulletRenderer = Renderer.extend({
         this.bullets = blts;
     },
 
-    render: function(ctx, imageLibrary) {
-        this.bullets.forEach(function(bullet) {
+    render: function(ctx, imageLibrary, viewPort) {
+        this._visibleEntities(viewPort, this.bullets).forEach(function(bullet) {
             ctx.save();
-            ctx.translate(bullet.position.X(), bullet.position.Y());
+            ctx.translate(bullet.position.X() - viewPort.position.X(),
+                bullet.position.Y() - viewPort.position.Y());
             ctx.drawImage(imageLibrary.mainImg, 277, 45, 8, 8, -4, -4, 8, 8);
             ctx.restore();
         });
@@ -344,11 +365,12 @@ var HeadQuartersRenderer = Renderer.extend({
         this.headquarters = hq;
     },
 
-    render: function(ctx, imageLibrary) {
-        this.headquarters.forEach(function(hq) {
+    render: function(ctx, imageLibrary, viewPort) {
+        this._visibleEntities(viewPort, this.headquarters).forEach(function(hq) {
             var numTiles = Math.ceil((hq.radius * 2) / 32);
             ctx.save();
-            ctx.translate(hq.position.X() - hq.radius, hq.position.Y() - hq.radius);
+            ctx.translate(hq.position.X() - viewPort.position.X() - hq.radius,
+                hq.position.Y() - viewPort.position.Y() - hq.radius);
             for (var y = 0; y < numTiles; y++) {
                 for (var x = 0; x < numTiles; x++) {
                     ctx.drawImage(imageLibrary.mainImg, 132, 66, 32, 32, x * 32, y * 32, 32, 32);
@@ -366,11 +388,12 @@ var MineRenderer = Renderer.extend({
         this.mines = m;
     },
 
-    render: function(ctx, imageLibrary) {
-        this.mines.forEach(function(mine) {
+    render: function(ctx, imageLibrary, viewPort) {
+        this._visibleEntities(viewPort, this.mines).forEach(function(mine) {
             var numTiles = Math.ceil((mine.radius * 2) / 30);
             ctx.save();
-            ctx.translate(mine.position.X() - mine.radius, mine.position.Y() - mine.radius);
+            ctx.translate(mine.position.X() - viewPort.position.X() - mine.radius,
+                mine.position.Y() - viewPort.position.Y() - mine.radius);
             for (var y = 0; y < numTiles; y++) {
                 for (var x = 0; x < numTiles; x++) {
                     ctx.drawImage(imageLibrary.mainImg, 100, 166, 29, 30, x * 29, y * 30, 29, 30);
@@ -388,19 +411,21 @@ var TankerRenderer = Renderer.extend({
         this.tankers = tnkrs;
     },
 
-    render: function(ctx, imageLibrary) {
+    render: function(ctx, imageLibrary, viewPort) {
         var that = this;
-        this.tankers.forEach(function(tanker) {
+        this._visibleEntities(viewPort, this.tankers).forEach(function(tanker) {
             ctx.save();
-            ctx.translate(tanker.position.X(), tanker.position.Y());
+            var posX = tanker.position.X() - viewPort.position.X();
+            var posY = tanker.position.Y() - viewPort.position.Y();
+            ctx.translate(posX, posY);
             ctx.rotate(that._angleFrom(tanker.heading));
             ctx.drawImage(imageLibrary.tankerImg, 220, 6, 20, 40, -tanker.width / 2, -tanker.length / 2, 30, 60);
             ctx.restore();
-            that._drawHealthBar(ctx, tanker, 45);
+            that._drawHealthBar(ctx, viewPort, tanker, 45);
             if (tanker.loading) {
                 var radians = (2 * Math.PI) * tanker.capacityUsed();
                 ctx.save();
-                ctx.translate(tanker.position.X(), tanker.position.Y());
+                ctx.translate(posX, posY);
                 ctx.fillStyle = "blue";
                 ctx.beginPath();
                 ctx.lineTo(0, -15);
@@ -415,7 +440,7 @@ var TankerRenderer = Renderer.extend({
 
 var ArrowRenderer = Renderer.extend({
 
-    render: function(ctx, imageLibrary) {
+    render: function(ctx, imageLibrary, viewPort) {
         ctx.save();
         for (var prop in Arrows) {
             if (Arrows.hasOwnProperty(prop)) {
@@ -443,7 +468,7 @@ var Arrows = {
         for (var prop in Arrows) {
             if (Arrows.hasOwnProperty(prop)) {
                 var arrow = Arrows[prop];
-                if (pointInRectangle(arrow.x, arrow.y, 27, 28, x, y)) {
+                if (pointInRectangle(arrow.x, arrow.y, 27, 28, x, y, 14)) {
                     return prop;
                 }
             }
