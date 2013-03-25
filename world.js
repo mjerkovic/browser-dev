@@ -127,14 +127,14 @@ function World(ctx) {
         tankers: []
     });
     var nwQuadrant = new Quadrant(1, 0, 0, {"E": 2, "S": 4, "SE": 5});
-    var nQuadrant = new Quadrant(2, 1100, 0, {"W": 1, "E": 3, "SW": 4, "S": 5, "SE": 6});
-    var neQuadrant = new Quadrant(3, 2200, 0, {"W": 2, "SW": 5, "S": 6});
-    var wQuadrant = new Quadrant(4, 0, 700, {"N": 1, "NE": 2, "E": 5, "S": 7, "SE": 8});
-    var cQuadrant = new Quadrant(5, 1100, 700, {"NW": 1, "N": 2, "NE": 3, "W": 4, "E": 6, "SW": 7, "S": 8, "SE": 9});
-    var eQuadrant = new Quadrant(6, 2200, 700, {"NW": 2, "N": 3, "W": 5, "SW": 8, "S": 9});
-    var swQuadrant = new Quadrant(7, 0, 1400, {"N": 4, "NE": 5, "E": 8});
-    var sQuadrant = new Quadrant(8, 1100, 1400, {"NW": 4, "N": 5, "NE": 6, "W": 7, "E": 9});
-    var seQuadrant = new Quadrant(9, 2200, 1400, {"NW": 5, "N": 6, "W": 8});
+    var nQuadrant = new Quadrant(2, 800, 0, {"W": 1, "E": 3, "SW": 4, "S": 5, "SE": 6});
+    var neQuadrant = new Quadrant(3, 1600, 0, {"W": 2, "SW": 5, "S": 6});
+    var wQuadrant = new Quadrant(4, 0, 800, {"N": 1, "NE": 2, "E": 5, "S": 7, "SE": 8});
+    var cQuadrant = new Quadrant(5, 800, 800, {"NW": 1, "N": 2, "NE": 3, "W": 4, "E": 6, "SW": 7, "S": 8, "SE": 9});
+    var eQuadrant = new Quadrant(6, 1600, 800, {"NW": 2, "N": 3, "W": 5, "SW": 8, "S": 9});
+    var swQuadrant = new Quadrant(7, 0, 1600, {"N": 4, "NE": 5, "E": 8});
+    var sQuadrant = new Quadrant(8, 800, 1600, {"NW": 4, "N": 5, "NE": 6, "W": 7, "E": 9});
+    var seQuadrant = new Quadrant(9, 1600, 1600, {"NW": 5, "N": 6, "W": 8});
     var quadrants = new Quadrants([nwQuadrant, nQuadrant, neQuadrant, wQuadrant, cQuadrant, eQuadrant, swQuadrant,
         sQuadrant, seQuadrant]);
     var viewPort = new Viewport({ currentQuadrant: nwQuadrant, quadrants: quadrants });

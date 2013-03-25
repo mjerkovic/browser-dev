@@ -1,11 +1,11 @@
-const APP_WIDTH = 1300;
-const APP_HEIGHT = 700;
-const WORLD_WIDTH = 3300;
-const WORLD_HEIGHT = 2100;
-const BATTLEFIELD_WIDTH = 1100;
-const BATTLEFIELD_HEIGHT = 700;
+const APP_WIDTH = 1000;
+const APP_HEIGHT = 800;
+const WORLD_WIDTH = 2400;
+const WORLD_HEIGHT = 2400;
+const BATTLEFIELD_WIDTH = 800;
+const BATTLEFIELD_HEIGHT = 800;
 const INFO_PANEL_WIDTH = 200;
-const INFO_PANEL_HEIGHT = 700;
+const INFO_PANEL_HEIGHT = 800;
 
 function GameRenderer(ctx, width, height, imageLibrary, viewPort, renderers) {
     this.render = function() {
@@ -62,19 +62,41 @@ var WorldRenderer = Renderer.extend({
     },
 
     render: function(ctx, imageLibrary, viewPort) {
-        this._drawBackground(ctx, imageLibrary);
+        this._drawBackground(ctx, imageLibrary, viewPort);
         this._drawCraters(ctx, imageLibrary);
         this._drawSidePanel(ctx, imageLibrary);
         this._drawMap(ctx, viewPort);
     },
 
-    _drawBackground: function(ctx, imageLibrary) {
+    _drawBackground: function(ctx, imageLibrary, viewPort) {
         ctx.save();
-        var numXTiles = Math.ceil(BATTLEFIELD_WIDTH / 31);
-        var numYTiles = Math.ceil(BATTLEFIELD_HEIGHT / 31);
+        var numXTiles = Math.ceil(BATTLEFIELD_WIDTH / 31) + 1;
+        var numYTiles = Math.ceil(BATTLEFIELD_HEIGHT / 31) + 1;
+        var imgX, imgY, sizeX, sizeY;
+        imgX = imgY = sizeX = sizeY = 0;
+        var screenX, screenY;
+        screenX = screenY = 0;
         for (var x=0; x < numXTiles; x = x + 1) {
+            if (x == 0) {
+                imgX = sizeX = viewPort.position.X() % 31;
+                screenX = 0;
+            } else {
+                sizeX = 0;
+                screenX = (imgX == 0) ? screenX + 31 : screenX + (31 - imgX);
+                imgX = 0;
+            }
             for (var y=0; y < numYTiles; y = y + 1) {
-                ctx.drawImage(imageLibrary.mainImg, 165, 132, 31, 31, x*31, y*31, 31, 31);
+                if (y == 0) {
+                    imgY = sizeY = viewPort.position.Y() % 31;
+                    screenY = 0;
+                } else {
+                    sizeY = 0;
+                    screenY = (imgY == 0) ? screenY + 31 : screenY + (31 - imgY);
+                    imgY = 0;
+                }
+                ctx.drawImage(imageLibrary.mainImg, 165 + imgX, 132 + imgY,
+                    31 - sizeX, 31 - sizeY,
+                    screenX, screenY, 31 - sizeX, 31 - sizeY);
             }
         }
         ctx.restore();
@@ -471,13 +493,13 @@ var ArrowRenderer = Renderer.extend({
 var Arrows = {
 
     NW: {x: 0, y: 0, imgX: 1, imgY: 1, orientation: $V([-1, -1]) },
-    N:  {x: 536, y: 0, imgX: 31, imgY: 1, orientation: $V([0, -1]) },
-    NE: {x: 1072, y: 0, imgX: 61, imgY: 1, orientation: $V([1, -1]) },
-    W:  {x: 0, y: 336, imgX: 1, imgY: 30, orientation: $V([-1, 0]) },
-    E:  {x: 1072, y: 336, imgX: 61, imgY: 30, orientation: $V([1, 0]) },
-    SW: {x: 0, y: 672, imgX: 1, imgY: 60, orientation: $V([-1, 1]) },
-    S:  {x: 536, y: 672, imgX: 31, imgY: 60, orientation: $V([0, 1]) },
-    SE:  {x: 1072, y: 672, imgX: 61, imgY: 60, orientation: $V([1, 1]) },
+    N:  {x: BATTLEFIELD_WIDTH / 2 - 14, y: 0, imgX: 31, imgY: 1, orientation: $V([0, -1]) },
+    NE: {x: BATTLEFIELD_WIDTH - 28, y: 0, imgX: 61, imgY: 1, orientation: $V([1, -1]) },
+    W:  {x: 0, y: BATTLEFIELD_HEIGHT / 2 - 14, imgX: 1, imgY: 30, orientation: $V([-1, 0]) },
+    E:  {x: BATTLEFIELD_WIDTH - 28, y: BATTLEFIELD_HEIGHT / 2 - 14, imgX: 61, imgY: 30, orientation: $V([1, 0]) },
+    SW: {x: 0, y: BATTLEFIELD_HEIGHT - 28, imgX: 1, imgY: 60, orientation: $V([-1, 1]) },
+    S:  {x: BATTLEFIELD_WIDTH / 2 - 14, y: BATTLEFIELD_HEIGHT - 28, imgX: 31, imgY: 60, orientation: $V([0, 1]) },
+    SE: {x: BATTLEFIELD_WIDTH - 28, y: BATTLEFIELD_HEIGHT - 28, imgX: 61, imgY: 60, orientation: $V([1, 1]) },
 
     directionFor: function(x, y) {
         for (var prop in Arrows) {
