@@ -52,10 +52,10 @@ function World(ctx) {
     var bulletsFired = [];
     this.vehicles = [];
     var walls = [
-        new Wall($V([0, 0]), $V([800, 0])),
-        new Wall($V([800, 0]), $V([800, 700])),
-        new Wall($V([800, 700]), $V([0, 700])),
-        new Wall($V([0, 700]), $V([0, 0]))
+        new Wall($V([0, 0]), $V([WORLD_WIDTH, 0])),
+        new Wall($V([WORLD_WIDTH, 0]), $V([WORLD_WIDTH, WORLD_HEIGHT])),
+        new Wall($V([WORLD_WIDTH, WORLD_HEIGHT]), $V([0, WORLD_HEIGHT])),
+        new Wall($V([0, WORLD_HEIGHT]), $V([0, 0]))
     ];
     var playerTank = new Tank({
         posX: 400,
@@ -165,7 +165,7 @@ function World(ctx) {
 
     this.performAction = function(pos) {
         var that = this;
-        var targetPos = $V([pos.x, pos.y]);
+        var targetPos = $V([pos.x - viewPort.position.X(), pos.y - viewPort.position.Y()]);
         var direction = Arrows.directionFor(pos.x, pos.y);
         if (direction) {
             console.log(direction);
