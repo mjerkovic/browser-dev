@@ -533,6 +533,7 @@ var Tanker = MovableUnit.extend({
         this.goal = spec.goal;
         this.load = 0;
         this.loading = false;
+        this.escort = spec.escort;
     },
 
     update: function() {

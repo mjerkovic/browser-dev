@@ -77,7 +77,6 @@ function World(ctx) {
         steering: new Steering(walls)
     });
     escortCannon.owner = escortTank;
-    escortTank.wallAvoidance().offsetPursuit(playerTank, $V([-30, -45]));
     var enemyCannon = Armoury.autoCannon(-0.7071, -0.7071, this)
     var enemyTank = new AutoTank({
         posX: 700,
@@ -123,7 +122,8 @@ function World(ctx) {
         length: 60,
         capacity: 100,
         transferRate: 10,
-        goal: new TankerThinkGoal({mine: playerMine, hq: playerHeadQuarters})
+        goal: new TankerThinkGoal({mine: playerMine, hq: playerHeadQuarters}),
+        escort: escortTank
     });
     var tankers = [playerTanker];
     this.vehicles = this.vehicles.concat(tankers);

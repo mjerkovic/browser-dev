@@ -128,7 +128,7 @@ var TankerThinkGoal = ComplexGoal.extend({
             this.goalState = GoalState.Completed;
             return this.goalState;
         }
-    },
+    }
 
 });
 
@@ -147,6 +147,10 @@ var RequestMineEntryGoal = Goal.extend({
             this.goalState = GoalState.Completed;
         }
         return this.goalState;
+    },
+
+    terminate: function(entity) {
+        entity.escort.offsetPursuit(entity, $V([-30, - 45]));
     }
 
 });
@@ -251,6 +255,7 @@ var LeaveMineGoal = Goal.extend({
         this._super(entity);
         this.destination = entity.loadingBay.approach.outbound;
         entity.seekTo(this.destination);
+        entity.escort.offsetPursuit(entity, $V([-30, 45]));
     },
 
     process: function(entity, world) {
@@ -280,6 +285,7 @@ var LoadingGoal = Goal.extend({
     activate: function(entity) {
         this._super(entity);
         entity.loading = true;
+        entity.escort.offsetPursuitOff();
     },
 
     process: function(entity, world) {
@@ -308,6 +314,7 @@ var UnloadingGoal = Goal.extend({
     activate: function(entity) {
         this._super(entity);
         entity.loading = true;
+        entity.escort.offsetPursuitOff();
     },
 
     process: function(entity, world) {
