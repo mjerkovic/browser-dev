@@ -66,6 +66,17 @@ function World(ctx) {
         cannon: Armoury.simpleCannon(1, 0, this),
         steering: new Steering(walls)
     });
+    var escortCannon = Armoury.autoCannon(-0.7071, -0.7071, this)
+    var escortTank = new AutoTank({
+        posX: 150,
+        posY: 90,
+        headingX: 0,
+        headingY: 1,
+        missiles: 1000,
+        cannon: escortCannon,
+        steering: new Steering(walls)
+    });
+    escortCannon.owner = escortTank;
     var enemyCannon = Armoury.autoCannon(-0.7071, -0.7071, this)
     var enemyTank = new AutoTank({
         posX: 700,
@@ -78,9 +89,10 @@ function World(ctx) {
         goal: new EnemyTankGoal()
     });
     enemyCannon.owner = enemyTank;
-    tanks.push(enemyTank, playerTank);
+    tanks.push(enemyTank, playerTank, escortTank);
     playerTank.wallAvoidance();
     enemyTank.wallAvoidance();
+    escortTank.wallAvoidance();
     this.vehicles = this.vehicles.concat(tanks);
     var playerHeadQuarters = new HeadQuarters({
         posX: 48,
@@ -117,7 +129,7 @@ function World(ctx) {
     var playerArmy = new Army({
         hq: playerHeadQuarters,
         mines: [playerMine],
-        tanks: [playerTank],
+        tanks: [playerTank, escortTank],
         tankers: [playerTanker]
     });
     var enemyArmy = new Army({
@@ -139,6 +151,7 @@ function World(ctx) {
         sQuadrant, seQuadrant]);
     var viewPort = new Viewport({ currentQuadrant: nwQuadrant, quadrants: quadrants });
     var playerTankRenderer = new PlayerTankRenderer(playerTank);
+    var escortTankRenderer = new PlayerTankRenderer(escortTank);
     var trajectoryRenderer = new TrajectoryRenderer(playerTank);
     var enemyTankRenderer = new EnemyTankRenderer(enemyTank);
     var worldRenderer = new WorldRenderer(playerTank, craters);
@@ -150,9 +163,8 @@ function World(ctx) {
     var mineRenderer = new MineRenderer(mines);
     var arrowRenderer = new ArrowRenderer();
     var gameRenderer = new GameRenderer(ctx, canvas.width, canvas.height, imageLibrary, viewPort,
-        [worldRenderer, headQuartersRenderer, mineRenderer, trajectoryRenderer, playerTankRenderer, enemyTankRenderer,
-            tankerRenderer, bulletRenderer, explosionRenderer, missileRenderer,
-            arrowRenderer]);
+        [worldRenderer, headQuartersRenderer, mineRenderer, trajectoryRenderer, playerTankRenderer, escortTankRenderer,
+            enemyTankRenderer, tankerRenderer, bulletRenderer, explosionRenderer, missileRenderer, arrowRenderer]);
     var userEvents = [];
 
     this.movePlayerTankTo = function(pos) {
