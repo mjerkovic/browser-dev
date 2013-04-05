@@ -153,6 +153,16 @@ MovableUnit = Unit.extend({
         return this;
     },
 
+    offsetPursuit: function(leader, offset) {
+        this.steering.offsetPursuit(leader, offset);
+        return this;
+    },
+
+    offsetPursuitOff: function() {
+        this.steering.offsetPursuitOff();
+        return this;
+    },
+
     update: function(world) {
         if (this.goal) {
             this.goal.process(this, world);

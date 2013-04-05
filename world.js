@@ -77,6 +77,7 @@ function World(ctx) {
         steering: new Steering(walls)
     });
     escortCannon.owner = escortTank;
+    escortTank.wallAvoidance().offsetPursuit(playerTank, $V([-30, -45]));
     var enemyCannon = Armoury.autoCannon(-0.7071, -0.7071, this)
     var enemyTank = new AutoTank({
         posX: 700,

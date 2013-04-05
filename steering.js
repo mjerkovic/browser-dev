@@ -14,6 +14,9 @@ function Steering(walls) {
     var stalkOn = false;
     var stalkTarget;
     var stalkRange;
+    var offsetPursuitOn = false;
+    var offsetLeader;
+    var offsetPosition;
 
     this.calculate = function(entity) {
         var steeringForce = Vector.Zero(2);
@@ -34,6 +37,9 @@ function Steering(walls) {
         }
         if (pursueOn) {
             steeringForce = steeringForce.add(pursuit(entity));
+        }
+        if (offsetPursuitOn) {
+            steeringForce = steeringForce.add(offsetPursuit(entity));
         }
         return steeringForce;
     }
@@ -108,7 +114,14 @@ function Steering(walls) {
         var lookAheadTime = toEvader.length() / (entity.maxSpeed + evader.velocity.length());
         seekPos = evader.position.add(evader.velocity.toUnitVector().multiply(lookAheadTime));
         return seek(entity);
+    }
 
+    var offsetPursuit = function(entity) {
+        var worldOffsetPos = pointToWorldSpace(offsetLeader, offsetPosition);
+        var toOffset = worldOffsetPos.subtract(entity.position);
+        var lookAheadTime = toOffset.length() / (entity.maxSpeed + offsetLeader.velocity.length());
+        arrivePos = worldOffsetPos.add(offsetLeader.velocity.toUnitVector().multiply(lookAheadTime));
+        return arrive(entity);
     }
 
     function interpose(entity) {
@@ -184,6 +197,16 @@ function Steering(walls) {
 
     this.stalkOff = function() {
         stalkOn = false;
+    }
+
+    this.offsetPursuit = function(leader, offset) {
+        offsetLeader = leader;
+        offsetPosition = offset;
+        offsetPursuitOn = true;
+    }
+
+    this.offsetPursuitOff = function() {
+        offsetPursuitOn = false;
     }
 
 }
