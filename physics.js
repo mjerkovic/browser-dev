@@ -1,31 +1,56 @@
 function start() {
     canvas = document.getElementById("canvas");
     context = canvas.getContext("2d");
-    var centrePoint = $V([canvas.width / 2, canvas.height / 2]);
-    angle = 0;
-    speed = 0.5;
-    velocity = $V([1, 0]).multiply(speed);
+    vehicle = new Vehicle();
     document.addEventListener("mousemove", function(ev) {
-        var heading = $V([Math.cos(angle), Math.sin(angle)]);
-        var target = $V([ev.clientX - vehicleLocation.e(1), ev.clientY - vehicleLocation.e(2)]).toUnitVector();
-        angle = Math.atan2(target.e(2), target.e(1)); //angleToTarget;
-        console.log("X = " + target.e(1) + ", Y = " + target.e(2), ", angleInRadians = " + angle);
-        velocity = $V([Math.cos(angle), Math.sin(angle)]).multiply(speed);
+        vehicle.changeDirection(ev.clientX, ev.clientY);
     });
-    vehicleLocation = $V([canvas.width / 2, canvas.height / 2]);
     requestAnimationFrame(update);
 }
 
 function update() {
-    vehicleLocation = vehicleLocation.add(velocity);
+    vehicle.move();
     render();
+}
+
+function Vehicle() {
+    var loc = $V([canvas.width / 2, canvas.height / 2]);
+    var velocity = $V([0, 0]);
+    var mass = 10;
+    var angle = 0;
+    var maxSpeed = 0.5;
+
+    return {
+        changeDirection: function(mouseX, mouseY) {
+            var target = $V([mouseX - loc.e(1), mouseY - loc.e(2)]).toUnitVector();
+            angle = Math.atan2(target.e(2), target.e(1));
+            console.log("X = " + target.e(1) + ", Y = " + target.e(2), ", angleInRadians = " + angle);
+            velocity = $V([Math.cos(angle), Math.sin(angle)]).multiply(maxSpeed);
+        },
+
+        move: function() {
+            loc = loc.add(velocity);
+        },
+
+        currentAngle: function() {
+            return angle;
+        },
+
+        location: function() {
+            return {
+            x: loc.e(1),
+            y: loc.e(2)
+            };
+        }
+    };
 }
 
 function render() {
     // Clear
     context.save();
-    context.fillStyle = "FFFFFF";
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.clearRect(0, 0, canvas.width, canvas.height)
+    //context.fillStyle = "FFFFFF";
+    //context.fillRect(0, 0, canvas.width, canvas.height);
     //context.strokeStyle = "black";
     context.strokeRect(0, 0, canvas.width, canvas.height);
     context.restore();
@@ -33,7 +58,7 @@ function render() {
     // Compass
     context.save();
     context.translate(500, 50);
-    context.rotate(angle);
+    context.rotate(vehicle.currentAngle());
     context.beginPath();
     context.moveTo(-25, 0);
     context.lineTo(25, 0);
@@ -46,8 +71,9 @@ function render() {
 
     // Vehicle
     context.save();
-    context.translate(vehicleLocation.e(1), vehicleLocation.e(2));
-    context.rotate(angle);
+    console.log(vehicle.location().x + " " + vehicle.location().y);
+    context.translate(vehicle.location().x, vehicle.location().y);
+    context.rotate(vehicle.currentAngle());
     context.beginPath();
     context.moveTo(10, 0);
     context.lineTo(-10, -5);
