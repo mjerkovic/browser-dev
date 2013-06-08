@@ -1,7 +1,7 @@
 function start() {
-    track = new Track([{ start: $V([50, 300]), end: $V([1150, 300]) }], 50);
-    vehicle = new Vehicle(60, 320);
-    renderer = new Renderer(track, [vehicle]);
+    track = new Track([{ start: $V([50, 300]), end: $V([1150, 300]) }], 20);
+    player = new PlayerCar(60, 380);
+    renderer = new Renderer(track, [player]);
     mud = new Mud(200, 200, 30);
     forward = false,
     left = false,
@@ -20,8 +20,7 @@ function start() {
             case 68: right = false; break;
         }
     });
-
-    requestAnimationFrame(update);
+    update();
 }
 
 function Track(segments, radius) {
@@ -33,7 +32,7 @@ function Track(segments, radius) {
 }
 
 function update() {
-    vehicle.move();
+    player.move();
     renderer.render();
     requestAnimationFrame(update);
 }
@@ -43,7 +42,7 @@ function Mud(x, y, r) {
     this.radius = r
 }
 
-function Vehicle(x, y) {
+function PlayerCar(x, y) {
     var loc = $V([x, y]);
     var velocity = $V([0, 0]);
     var mass = 10;
@@ -73,7 +72,6 @@ function Vehicle(x, y) {
             var acceleration = calculateForce().dividedBy(mass);
             velocity = velocity.add(acceleration);
             addDrag();
-            console.log(velocity.modulus());
             loc = loc.add(velocity);
         },
 
@@ -81,11 +79,8 @@ function Vehicle(x, y) {
             return angle;
         },
 
-        location: function() {
-            return {
-            x: loc.e(1),
-            y: loc.e(2)
-            };
+        position: function() {
+            return loc.dup();
         }
     };
 }
@@ -102,10 +97,25 @@ function Renderer(track, cars) {
     var drawTrack = function() {
         context.save();
         track.forEach(function(segment, radius) {
+            var startX = segment.start.e(1);
+            var startY = segment.start.e(2);
+            var endX = segment.end.e(1);
+            var endY = segment.end.e(2);
             context.beginPath();
-            context.moveTo(segment.start.e(1), segment.start.e(2));
-            context.lineTo(segment.end.e(1), segment.end.e(2));
+            context.arc(startX, startY, 4, 0, 2.0 * Math.PI, true);
+            context.fill();
+            ///context.closePath();
+            //context.beginPath();
+            context.moveTo(startX, startY);
+            context.lineTo(endX, endY);
             context.stroke();
+            //context.closePath();
+            //context.beginPath();
+            context.arc(endX, endY, 4, 0, 2.0 * Math.PI, true);
+            context.fill();
+            context.rect(startX, startY - radius, endX - startX, radius * 2);
+            context.stroke();
+            context.closePath();
         });
         context.restore();
     }
@@ -117,14 +127,24 @@ function Renderer(track, cars) {
         });
     }
     var drawCar = function(car) {
-        context.translate(car.location().x, car.location().y);
+        function triangle() {
+            context.moveTo(10, 0);
+            context.lineTo(-10, -5);
+            context.lineTo(-10, 5);
+            context.lineTo(10, 0);
+        }
+
+        context.translate(car.position().x(), car.position().y());
         context.rotate(car.currentAngle());
         context.beginPath();
-        context.moveTo(10, 0);
-        context.lineTo(-10, -5);
-        context.lineTo(-10, 5);
-        context.lineTo(10, 0);
+        triangle();
+        context.fillStyle = "00FFFF";
+        context.fill();
+        triangle();
+        context.strokeStyle = "black";
+        context.lineWidth = 1.5;
         context.stroke();
+        context.closePath();
     }
 
     return {
