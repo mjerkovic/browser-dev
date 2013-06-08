@@ -142,7 +142,11 @@ Vector.prototype = {
 
   x: function(k) { return this.multiply(k); },
 
-  // Returns the scalar product of the vector with the argument
+    dividedBy: function(k) {
+        return this.map(function(x) { return x / k; });
+    },
+
+    // Returns the scalar product of the vector with the argument
   // Both vectors must have equal dimensionality
   dot: function(vector) {
     var V = vector.elements || vector;

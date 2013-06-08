@@ -1,10 +1,35 @@
+/*
+vector length = modulus
+dup = copy
+inspect = toString
+
+next step is to add friction
+and ensure velocity remains between 0 and maxSpeed
+ */
+
 function start() {
     canvas = document.getElementById("canvas");
     context = canvas.getContext("2d");
     vehicle = new Vehicle();
-    document.addEventListener("mousemove", function(ev) {
-        vehicle.changeDirection(ev.clientX, ev.clientY);
+    mud = new Mud(200, 200, 30);
+    forward = false,
+    left = false,
+    right = false;
+    document.addEventListener('keydown',function(ev) {
+        switch(ev.keyCode) {
+            case 87: forward = true; break;
+            case 65: left = true; break;
+            case 68: right = true; break;
+        }
     });
+    document.addEventListener('keyup',function(ev) {
+        switch(ev.keyCode) {
+            case 87: forward = false; break;
+            case 65: left = false; break;
+            case 68: right = false; break;
+        }
+    });
+
     requestAnimationFrame(update);
 }
 
@@ -13,22 +38,41 @@ function update() {
     render();
 }
 
+function Mud(x, y, r) {
+    this.position = $V([x, y]);
+    this.radius = r
+}
+
 function Vehicle() {
     var loc = $V([canvas.width / 2, canvas.height / 2]);
     var velocity = $V([0, 0]);
     var mass = 10;
     var angle = 0;
-    var maxSpeed = 0.5;
+    var maxSpeed = 1;
+
+    var calculateForce = function() {
+        var force = Vector.Zero(2);
+        if (left) angle -= 0.04;
+        if (right) angle += 0.04;
+        if (forward) {
+            force = force.add($V([Math.cos(angle), Math.sin(angle)]).multiply(maxSpeed));
+        }
+        return force.subtract(velocity);
+    }
+
+    var addDrag = function() {
+        if (mud.position.distanceFrom(loc) <= (mud.radius + 10)) {
+            var drag = velocity.multiply(-1).toUnitVector().multiply(0.07);
+            velocity = velocity.add(drag);
+        }
+    }
 
     return {
-        changeDirection: function(mouseX, mouseY) {
-            var target = $V([mouseX - loc.e(1), mouseY - loc.e(2)]).toUnitVector();
-            angle = Math.atan2(target.e(2), target.e(1));
-            console.log("X = " + target.e(1) + ", Y = " + target.e(2), ", angleInRadians = " + angle);
-            velocity = $V([Math.cos(angle), Math.sin(angle)]).multiply(maxSpeed);
-        },
-
         move: function() {
+            var acceleration = calculateForce().dividedBy(mass);
+            velocity = velocity.add(acceleration);
+            addDrag();
+            console.log(velocity.modulus());
             loc = loc.add(velocity);
         },
 
@@ -49,9 +93,6 @@ function render() {
     // Clear
     context.save();
     context.clearRect(0, 0, canvas.width, canvas.height)
-    //context.fillStyle = "FFFFFF";
-    //context.fillRect(0, 0, canvas.width, canvas.height);
-    //context.strokeStyle = "black";
     context.strokeRect(0, 0, canvas.width, canvas.height);
     context.restore();
 
@@ -71,7 +112,6 @@ function render() {
 
     // Vehicle
     context.save();
-    console.log(vehicle.location().x + " " + vehicle.location().y);
     context.translate(vehicle.location().x, vehicle.location().y);
     context.rotate(vehicle.currentAngle());
     context.beginPath();
@@ -83,18 +123,14 @@ function render() {
     context.restore();
 
     // Circle    
-/*    context.save();
+    context.save();
     context.beginPath();
-    context.arc(300, 300, 10, 0, 2.0 * Math.PI, true);
+    context.arc(mud.position.e(1), mud.position.e(2), mud.radius, 0, 2.0 * Math.PI, true);
     context.lineWidth = 2;
     context.strokeStyle = 'black';
     context.stroke();
-*//*    context.beginPath();
-    context.fillArc(300, 300, 9, 0, 2.0 * Math.PI, true);
-    context.fillStyle = 'red';
-    context.stroke();
     context.restore();
-*/
+
     requestAnimationFrame(update);
 }
 
