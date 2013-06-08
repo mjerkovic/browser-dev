@@ -12,6 +12,7 @@ function start() {
     context = canvas.getContext("2d");
     vehicle = new Vehicle();
     mud = new Mud(200, 200, 30);
+    planet = new Planet(60);
     forward = false,
     left = false,
     right = false;
@@ -35,7 +36,16 @@ function start() {
 
 function update() {
     vehicle.move();
+    planet.update();
     render();
+}
+
+function Planet(r) {
+    this.angle = 0;
+    this.radius = r;
+    this.update = function() {
+        this.angle -= 0.01;
+    }
 }
 
 function Mud(x, y, r) {
@@ -62,7 +72,8 @@ function Vehicle() {
 
     var addDrag = function() {
         if (mud.position.distanceFrom(loc) <= (mud.radius + 10)) {
-            var drag = velocity.multiply(-1).toUnitVector().multiply(0.07);
+            var speed = velocity.modulus();
+            var drag = velocity.multiply(-1).toUnitVector().multiply(0.5 * speed * speed);
             velocity = velocity.add(drag);
         }
     }
@@ -126,6 +137,18 @@ function render() {
     context.save();
     context.beginPath();
     context.arc(mud.position.e(1), mud.position.e(2), mud.radius, 0, 2.0 * Math.PI, true);
+    context.lineWidth = 2;
+    context.strokeStyle = 'black';
+    context.stroke();
+    context.restore();
+
+    // Planet
+    context.save();
+    context.translate(mud.position.e(1), mud.position.e(2));
+    var planetX = planet.radius * Math.cos(planet.angle);
+    var planetY = planet.radius * Math.sin(planet.angle);
+    context.beginPath();
+    context.arc(planetX, planetY, 5, 0, 2.0 * Math.PI, true);
     context.lineWidth = 2;
     context.strokeStyle = 'black';
     context.stroke();
