@@ -13,6 +13,7 @@ function start() {
             case 87: forward = true; break;
             case 65: left = true; break;
             case 68: right = true; break;
+            case 78: showNormal = !showNormal; break;
         }
     });
     document.addEventListener('keyup',function(ev) {
@@ -21,14 +22,6 @@ function start() {
             case 65: left = false; break;
             case 68: right = false; break;
         }
-    });
-    document.addEventListener('mousedown', function(ev) {
-        showNormal = true;
-        var pos = posFromMouseEvent(ev);
-        mousePos = $V([pos.x, pos.y]);
-    });
-    document.addEventListener('mouseup', function(ev) {
-        showNormal = false;
     });
     document.addEventListener('mousemove', function(ev) {
         if (showNormal) {
@@ -67,7 +60,7 @@ function Track(segments, radius) {
 
 function update() {
     player.move();
-    if (showNormal) {
+    if (showNormal && mousePos) {
         track.calculateNormal();
     }
     renderer.render();
@@ -206,10 +199,8 @@ function Renderer(track, cars) {
             clear();
             drawTrack();
             drawCars();
-            if (mousePos) {
+            if (showNormal && mousePos) {
                 drawMousePos();
-            }
-            if (showNormal) {
                 drawNormal();
             }
         }
