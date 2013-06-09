@@ -1,15 +1,18 @@
 function start() {
+    CARS_FRAMES_PER_SECOND =  30;
+    UPDATE_DELAY = (1000 / CARS_FRAMES_PER_SECOND) / 1000;
     var player = new PlayerCar(60, 380);
     track = new Track([
         { start: $V([50, 300]), end: $V([550, 300]) },
         { start: $V([550, 300]), end: $V([1150, 300]) }
     ], 20, [player]);
     renderer = new Renderer(track, [player]);
-    mud = new Mud(200, 200, 30);
+    mud = new Mud(-15, -15, 30);
     forward = false,
     left = false,
     right = false;
     showNormal = false;
+    paused = false;
     tracker = {};
     document.addEventListener('keydown',function(ev) {
         switch(ev.keyCode) {
@@ -17,6 +20,7 @@ function start() {
             case 65: left = true; break;
             case 68: right = true; break;
             case 78: showNormal = !showNormal; break;
+            case 80: paused = !paused; break;
         }
     });
     document.addEventListener('keyup',function(ev) {
@@ -32,6 +36,7 @@ function start() {
             tracker.mousePos = $V([pos.x, pos.y]);
         }
     });
+    lastRun = new Date();
     update();
 }
 
@@ -42,8 +47,16 @@ function posFromMouseEvent(ev) {
 }
 
 function update() {
-    track.update();
-    renderer.render();
+    if (!paused) {
+        var step = new Date();
+        var delta = (step - lastRun) / 1000;
+        //console.log(delta);
+        //if (delta >= UPDATE_DELAY) {
+            lastRun = step;
+            track.update(delta);
+        //}
+        renderer.render();
+    }
     requestAnimationFrame(update);
 }
 
@@ -60,7 +73,7 @@ function Track(segments, radius, cars) {
             var targetAngle = target.angleFrom(segment.direction);
             var lengthToNormal = target.modulus() * Math.cos(targetAngle);
             if (lengthToNormal <= segment.length) {
-                console.log("Segment Length = " + segment.length + ", Normal Length =  " + lengthToNormal + ", Segment = " + i);
+                //console.log("Segment Length = " + segment.length + ", Normal Length =  " + lengthToNormal + ", Segment = " + i);
                 tracker.normalPos = segment.start.add(segment.direction.multiply(lengthToNormal));
                 tracker.currentSegment = segment;
                 tracker.segmentNo = segments.indexOf(segment) + 1;
@@ -69,8 +82,8 @@ function Track(segments, radius, cars) {
         }
     }
 
-    this.update = function() {
-        cars[0].move();
+    this.update = function(delta) {
+        cars[0].move(delta);
         if (showNormal && tracker.mousePos) {
             calculateNormal();
         }
@@ -102,24 +115,31 @@ function PlayerCar(x, y) {
         if (right) angle += 0.04;
         if (forward) {
             force = force.add($V([Math.cos(angle), Math.sin(angle)]).multiply(maxSpeed));
+            return force.subtract(velocity);
+        } else {
+            return velocity.toUnitVector().multiply(-1); // * maxSpeed).subtract(velocity);
         }
-        return force.subtract(velocity);
     }
 
-    var addDrag = function() {
+    var calculateDrag = function() {
+        var drag = Vector.Zero(2);
         if (mud.position.distanceFrom(loc) <= (mud.radius + 10)) {
             var speed = velocity.modulus();
-            var drag = velocity.multiply(-1).toUnitVector().multiply(0.5 * speed * speed);
-            velocity = velocity.add(drag);
+            drag = velocity.multiply(-1).toUnitVector().multiply(0.5 * speed * speed);
         }
+        return drag;
     }
 
     return {
-        move: function() {
-            var acceleration = calculateForce().dividedBy(mass);
+        move: function(delta) {
+            var force = calculateForce();
+            var acceleration = force.dividedBy(mass);
             velocity = velocity.add(acceleration);
-            addDrag();
+            var drag = calculateDrag();
+            velocity = velocity.add(drag);
             loc = loc.add(velocity);
+            console.log("force=" + force.inspect() + " acceleration=" + acceleration.inspect() + " drag=" + drag +
+                " velocity=" + velocity.inspect() + " location=" + loc.inspect());
         },
 
         currentAngle: function() {
