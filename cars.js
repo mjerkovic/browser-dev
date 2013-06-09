@@ -1,9 +1,9 @@
 function start() {
+    var player = new PlayerCar(60, 380);
     track = new Track([
         { start: $V([50, 300]), end: $V([550, 300]) },
         { start: $V([550, 300]), end: $V([1150, 300]) }
-    ], 20);
-    player = new PlayerCar(60, 380);
+    ], 20, [player]);
     renderer = new Renderer(track, [player]);
     mud = new Mud(200, 200, 30);
     forward = false,
@@ -42,18 +42,39 @@ function posFromMouseEvent(ev) {
 }
 
 function update() {
-    player.move();
-    if (showNormal && tracker.mousePos) {
-        track.calculateNormal();
-    }
+    track.update();
     renderer.render();
     requestAnimationFrame(update);
 }
 
-function Track(segments, radius) {
+function Track(segments, radius, cars) {
     segments.forEach(function(segment) {
-        segment.segVec = segment.end.subtract(segment.start).toUnitVector();
+        var segmentVector = segment.end.subtract(segment.start);
+        segment.direction = segmentVector.toUnitVector();
+        segment.length = segmentVector.modulus();
     });
+    var calculateNormal = function() {
+        for (var i = 1; i <= segments.length; i++) {
+            var segment = segments[i - 1];
+            var target = tracker.mousePos.subtract(segment.start);
+            var targetAngle = target.angleFrom(segment.direction);
+            var lengthToNormal = target.modulus() * Math.cos(targetAngle);
+            if (lengthToNormal <= segment.length) {
+                console.log("Segment Length = " + segment.length + ", Normal Length =  " + lengthToNormal + ", Segment = " + i);
+                tracker.normalPos = segment.start.add(segment.direction.multiply(lengthToNormal));
+                tracker.currentSegment = segment;
+                tracker.segmentNo = segments.indexOf(segment) + 1;
+                break;
+            }
+        }
+    }
+
+    this.update = function() {
+        cars[0].move();
+        if (showNormal && tracker.mousePos) {
+            calculateNormal();
+        }
+    }
 
     this.forEach = function(fn) {
         segments.forEach(function(segment) {
@@ -61,22 +82,6 @@ function Track(segments, radius) {
         });
     }
 
-    this.calculateNormal = function() {
-        for (var i = 1; i <= segments.length; i++) {
-            var segment = segments[i - 1];
-            var target = tracker.mousePos.subtract(segment.start);
-            var targetAngle = target.angleFrom(segment.segVec);
-            var lengthToNormal = target.modulus() * Math.cos(targetAngle);
-            var segmentLength = segment.end.subtract(segment.start).modulus();
-            if (lengthToNormal <= segmentLength) {
-                console.log("Segment Length = " + segmentLength + ", Normal Length =  " + lengthToNormal + ", Segment = " + i);
-                tracker.normalPos = segment.start.add(segment.segVec.multiply(lengthToNormal));
-                tracker.currentSegment = segment;
-                tracker.segmentNo = segments.indexOf(segment) + 1;
-                break;
-            }
-        }
-    }
 }
 
 function Mud(x, y, r) {
