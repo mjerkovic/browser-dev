@@ -1,5 +1,8 @@
 function start() {
-    track = new Track([{ start: $V([50, 300]), end: $V([1150, 300]) }], 20);
+    track = new Track([
+        { start: $V([50, 300]), end: $V([550, 300]) },
+        { start: $V([550, 300]), end: $V([1150, 300]) }
+    ], 20);
     player = new PlayerCar(60, 380);
     renderer = new Renderer(track, [player]);
     mud = new Mud(200, 200, 30);
@@ -7,7 +10,7 @@ function start() {
     left = false,
     right = false;
     showNormal = false;
-    mousePos = null;
+    tracker = {};
     document.addEventListener('keydown',function(ev) {
         switch(ev.keyCode) {
             case 87: forward = true; break;
@@ -26,7 +29,7 @@ function start() {
     document.addEventListener('mousemove', function(ev) {
         if (showNormal) {
             var pos = posFromMouseEvent(ev);
-            mousePos = $V([pos.x, pos.y]);
+            tracker.mousePos = $V([pos.x, pos.y]);
         }
     });
     update();
@@ -36,6 +39,15 @@ function posFromMouseEvent(ev) {
     var x = ev.pageX - canvas.offsetLeft;
     var y = ev.pageY - canvas.offsetTop;
     return { "x": x, "y": y };
+}
+
+function update() {
+    player.move();
+    if (showNormal && tracker.mousePos) {
+        track.calculateNormal();
+    }
+    renderer.render();
+    requestAnimationFrame(update);
 }
 
 function Track(segments, radius) {
@@ -50,21 +62,21 @@ function Track(segments, radius) {
     }
 
     this.calculateNormal = function() {
-        var segment = segments[0];
-        var target = mousePos.subtract(segment.start);
-        var targetAngle = target.angleFrom(segment.segVec);
-        var length = target.modulus() * Math.cos(targetAngle);
-        segment.normalPos = segment.start.add(segment.segVec.multiply(length));
+        for (var i = 1; i <= segments.length; i++) {
+            var segment = segments[i - 1];
+            var target = tracker.mousePos.subtract(segment.start);
+            var targetAngle = target.angleFrom(segment.segVec);
+            var lengthToNormal = target.modulus() * Math.cos(targetAngle);
+            var segmentLength = segment.end.subtract(segment.start).modulus();
+            if (lengthToNormal <= segmentLength) {
+                console.log("Segment Length = " + segmentLength + ", Normal Length =  " + lengthToNormal + ", Segment = " + i);
+                tracker.normalPos = segment.start.add(segment.segVec.multiply(lengthToNormal));
+                tracker.currentSegment = segment;
+                tracker.segmentNo = segments.indexOf(segment) + 1;
+                break;
+            }
+        }
     }
-}
-
-function update() {
-    player.move();
-    if (showNormal && mousePos) {
-        track.calculateNormal();
-    }
-    renderer.render();
-    requestAnimationFrame(update);
 }
 
 function Mud(x, y, r) {
@@ -152,11 +164,9 @@ function Renderer(track, cars) {
     var drawNormal = function() {
         context.save();
         context.beginPath();
-        track.forEach(function(segment, radius) {
-            context.moveTo(mousePos.x(), mousePos.y());
-            context.lineTo(segment.normalPos.x(), segment.normalPos.y());
-            context.stroke();
-        });
+        context.moveTo(tracker.mousePos.x(), tracker.mousePos.y());
+        context.lineTo(tracker.normalPos.x(), tracker.normalPos.y());
+        context.stroke();
         context.closePath();
         context.restore();
     }
@@ -189,8 +199,9 @@ function Renderer(track, cars) {
     }
     var drawMousePos = function() {
         context.beginPath();
-        context.arc(mousePos.x(), mousePos.y(), 4, 0, 2.0 * Math.PI, true);
+        context.arc(tracker.mousePos.x(), tracker.mousePos.y(), 4, 0, 2.0 * Math.PI, true);
         context.fillStyle = 'red';
+        context.fillText(tracker.segmentNo, tracker.mousePos.x(), tracker.mousePos.y() - 10);
         context.fill();
         context.closePath();
     }
@@ -199,7 +210,7 @@ function Renderer(track, cars) {
             clear();
             drawTrack();
             drawCars();
-            if (showNormal && mousePos) {
+            if (showNormal && tracker.mousePos) {
                 drawMousePos();
                 drawNormal();
             }
