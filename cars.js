@@ -6,6 +6,8 @@ function start() {
     forward = false,
     left = false,
     right = false;
+    showNormal = false;
+    mousePos = null;
     document.addEventListener('keydown',function(ev) {
         switch(ev.keyCode) {
             case 87: forward = true; break;
@@ -20,19 +22,54 @@ function start() {
             case 68: right = false; break;
         }
     });
+    document.addEventListener('mousedown', function(ev) {
+        showNormal = true;
+        var pos = posFromMouseEvent(ev);
+        mousePos = $V([pos.x, pos.y]);
+    });
+    document.addEventListener('mouseup', function(ev) {
+        showNormal = false;
+    });
+    document.addEventListener('mousemove', function(ev) {
+        if (showNormal) {
+            var pos = posFromMouseEvent(ev);
+            mousePos = $V([pos.x, pos.y]);
+        }
+    });
     update();
 }
 
+function posFromMouseEvent(ev) {
+    var x = ev.pageX - canvas.offsetLeft;
+    var y = ev.pageY - canvas.offsetTop;
+    return { "x": x, "y": y };
+}
+
 function Track(segments, radius) {
+    segments.forEach(function(segment) {
+        segment.segVec = segment.end.subtract(segment.start).toUnitVector();
+    });
+
     this.forEach = function(fn) {
         segments.forEach(function(segment) {
             fn(segment, radius);
         });
     }
+
+    this.calculateNormal = function() {
+        var segment = segments[0];
+        var target = mousePos.subtract(segment.start);
+        var targetAngle = target.angleFrom(segment.segVec);
+        var length = target.modulus() * Math.cos(targetAngle);
+        segment.normalPos = segment.start.add(segment.segVec.multiply(length));
+    }
 }
 
 function update() {
     player.move();
+    if (showNormal) {
+        track.calculateNormal();
+    }
     renderer.render();
     requestAnimationFrame(update);
 }
@@ -119,6 +156,17 @@ function Renderer(track, cars) {
         });
         context.restore();
     }
+    var drawNormal = function() {
+        context.save();
+        context.beginPath();
+        track.forEach(function(segment, radius) {
+            context.moveTo(mousePos.x(), mousePos.y());
+            context.lineTo(segment.normalPos.x(), segment.normalPos.y());
+            context.stroke();
+        });
+        context.closePath();
+        context.restore();
+    }
     var drawCars = function() {
         cars.forEach(function(car) {
             context.save();
@@ -146,12 +194,24 @@ function Renderer(track, cars) {
         context.stroke();
         context.closePath();
     }
-
+    var drawMousePos = function() {
+        context.beginPath();
+        context.arc(mousePos.x(), mousePos.y(), 4, 0, 2.0 * Math.PI, true);
+        context.fillStyle = 'red';
+        context.fill();
+        context.closePath();
+    }
     return {
         render: function() {
             clear();
             drawTrack();
             drawCars();
+            if (mousePos) {
+                drawMousePos();
+            }
+            if (showNormal) {
+                drawNormal();
+            }
         }
     }
 }
