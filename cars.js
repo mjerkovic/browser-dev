@@ -2,28 +2,38 @@ function start() {
     CARS_FRAMES_PER_SECOND =  30;
     UPDATE_DELAY = (1000 / CARS_FRAMES_PER_SECOND) / 1000;
     track = new Track([
-        new Segment($V([250, 450]), $V([600, 450])),
-        new Segment($V([600, 450]), $V([950, 450])),
-        new Segment($V([950, 450]), $V([1050, 400])),
-        new Segment($V([1050, 400]), $V([1100, 350])),
-        new Segment($V([1100, 350]), $V([1100, 250])),
-
-        new Segment($V([1100, 250]), $V([1050, 200])),
-        new Segment($V([1050, 200]), $V([950, 150])),
-        new Segment($V([950, 150]), $V([600, 150])),
-        new Segment($V([600, 150]), $V([250, 150])),
-
-        new Segment($V([250, 150]), $V([150, 200])),
-        new Segment($V([150, 200]), $V([100, 250])),
-        new Segment($V([100, 250]), $V([100, 350])),
-        new Segment($V([100, 350]), $V([150, 400])),
-        new Segment($V([150, 400]), $V([250, 450]))
+        // Bottom Straight
+        new Segment($V([250, 550]), $V([600, 550]), $V([0, -1])),
+        new Segment($V([600, 550]), $V([950, 550]), $V([0, -1])),
+        // Bottom Right Corner
+        new Segment($V([950, 550]), $V([1050, 500]), $V([-50, -100]).toUnitVector()),
+        new Segment($V([1050, 500]), $V([1100, 450]), $V([-50, -50]).toUnitVector()),
+        new Segment($V([1100, 450]), $V([1150, 350]), $V([-100, -50]).toUnitVector()),
+        // Right Straight
+        new Segment($V([1150, 350]), $V([1150, 250]), $V([-1, 0])),
+        // Top Right Corner
+        new Segment($V([1150, 250]), $V([1100, 150]), $V([-100, 50]).toUnitVector()),
+        new Segment($V([1100, 150]), $V([1050, 100]), $V([-50, 50]).toUnitVector()),
+        new Segment($V([1050, 100]), $V([950, 50]), $V([-50, 100]).toUnitVector()),
+        // Top Straight
+        new Segment($V([950, 50]), $V([600, 50]), $V([0, 1])),
+        new Segment($V([600, 50]), $V([250, 50]), $V([0, 1])),
+        // Top Left Corner
+        new Segment($V([250, 50]), $V([150, 100]), $V([50, 100]).toUnitVector()),
+        new Segment($V([150, 100]), $V([100, 150]), $V([50, 50]).toUnitVector()),
+        new Segment($V([100, 150]), $V([50, 250]), $V([100, 50]).toUnitVector()),
+        // Left Straight
+        new Segment($V([50, 250]), $V([50, 350]), $V([1, 0])),
+        // Bottom Left Straight
+        new Segment($V([50, 350]), $V([100, 450]), $V([100, -50]).toUnitVector()),
+        new Segment($V([100, 450]), $V([150, 500]), $V([50, -50]).toUnitVector()),
+        new Segment($V([150, 500]), $V([250, 550]), $V([50, -100]).toUnitVector())
 
     ], 20);
     var player = new PlayerCar(60, 220, track);
     var cpu = new Car(260, 500, track);
-    var cpu2 = new Car(360, 500, track);
-    renderer = new Renderer(track, [player, cpu, cpu2]);
+    //var cpu2 = new Car(360, 500, track);
+    renderer = new Renderer(track, [player, cpu]);
     mud = new Mud(-15, -15, 30);
     forward = false,
     left = false,
@@ -77,12 +87,17 @@ function update() {
     requestAnimationFrame(update);
 }
 
-function Segment(startPos, endPos) {
+function Segment(startPos, endPos, norm) {
     var segmentVector = endPos.subtract(startPos);
     var dir = segmentVector.toUnitVector();
     var len = segmentVector.modulus();
+    var wallNorm = norm || $V([-dir.y(), dir.x()]);
     var vectorTo = function(target) {
         return target.subtract(startPos);
+    }
+
+    this.wallNormal = function() {
+        return wallNorm.dup();
     }
 
     this.angleTo = function(target) {
@@ -111,11 +126,13 @@ function Segment(startPos, endPos) {
 
     this.normal = function(pos, heading) {
         var target = vectorTo(pos);
-        if (dir.dot(target) < 0 || dir.dot(heading < 0)) {
+        console.log("Start = " + startPos.inspect() + "Dir = " + dir.inspect() + " Target = " + target.toUnitVector().inspect() + " Dot = " + dir.dot(target.toUnitVector()));
+        if (dir.dot(target.toUnitVector() < 0) || dir.dot(heading) < 0) {
             return null;
         }
         var targetAngle = this.angleTo(target);
         var lengthToNormal = target.modulus() * Math.cos(targetAngle);
+        console.log("lengthToNormal = " + lengthToNormal + " len = " + len);
         return (lengthToNormal > len) ? null : this.normalAtLength(lengthToNormal);
     }
 
@@ -209,6 +226,10 @@ function PlayerCar(x, y, track) {
 
         position: function() {
             return loc.dup();
+        },
+
+        render: function(context) {
+
         }
     };
     track.add(result);
@@ -221,18 +242,20 @@ function Car(x, y, track) {
     var mass = 10;
     var angle = 0;
     var maxSpeed = 1;
-
+    var normalPos = null;
+    var seekPos = null;
     var calculateForce = function() {
         var closestNormal = Number.MAX_VALUE;
         var closestSegment = null;
         var segmentRadius = null;
         var segmentNumber = null;
-        var normalPos = null;
+        normalPos = null;
         track.forEach(function(segment, segmentNo, radius) {
-            var pos = segment.normal(loc.add(velocity.toUnitVector().multiply(20)), $V([Math.cos(angle), Math.sin(angle)]));
+            var futureLocation = loc.add(velocity.toUnitVector().multiply(30));
+            var pos = segment.normal(futureLocation, $V([Math.cos(angle), Math.sin(angle)]));
             segmentRadius = radius;
             if (pos) {
-                var distanceToNormal = pos.distanceFrom(loc);
+                var distanceToNormal = pos.distanceFrom(futureLocation);
                 if (distanceToNormal < closestNormal) {
                     normalPos = pos;
                     closestNormal = distanceToNormal;
@@ -241,8 +264,7 @@ function Car(x, y, track) {
                 }
             }
         });
-        var seekPos =  (closestNormal > segmentRadius) ?
-            normalPos.add(closestSegment.direction().multiply(50)) :
+        seekPos = (closestNormal > segmentRadius * 2) ? normalPos.add(closestSegment.direction().multiply(50)) :
             loc.add(closestSegment.direction().multiply(50));
         return seekPos.subtract(loc).toUnitVector().multiply(maxSpeed).subtract(velocity);
     }
@@ -274,6 +296,28 @@ function Car(x, y, track) {
 
         position: function() {
             return loc.dup();
+        },
+
+        render: function(context) {
+            if (normalPos && seekPos) {
+                context.save();
+                context.beginPath();
+                context.arc(normalPos.x(), normalPos.y(), 4, 0, 2.0 * Math.PI, true);
+                context.fillStyle = "FFFF00"; // yellow
+                context.fill();
+                context.closePath();
+                context.beginPath();
+                context.arc(seekPos.x(), seekPos.y(), 4, 0, 2.0 * Math.PI, true);
+                context.fillStyle = "green"; //999966";  // grey
+                context.fill();
+                context.closePath();
+                context.beginPath();
+                var futureLocation = loc.add(velocity.toUnitVector().multiply(20));
+                context.arc(futureLocation.x(), futureLocation.y(), 4, 0, 2.0 * Math.PI, true);
+                context.fillStyle = "cyan"; //999966";  // grey
+                context.fill();
+                context.restore();
+            }
         }
     };
     track.add(result);
@@ -306,6 +350,9 @@ function Renderer(track, cars) {
             context.lineTo(endX, endY);
             context.stroke();
             drawCircleAt(endX, endY);
+            context.moveTo(startX, startY);
+            context.lineTo(startX + (segment.wallNormal().x() * 50), startY + (segment.wallNormal().y() * 50));
+            context.stroke();
             //context.rect(startX, startY - radius, endX - startX, radius * 2);
             //context.stroke();
             context.closePath();
@@ -326,6 +373,7 @@ function Renderer(track, cars) {
             context.save();
             drawCar(car);
             context.restore();
+            car.render(context);
 /*
             if (normalPos && seekPos) {
                 context.save();
@@ -353,18 +401,6 @@ function Renderer(track, cars) {
         context.strokeStyle = "black";
         context.lineWidth = 1.5;
         context.stroke();
-        context.closePath();
-    }
-    var drawProgressOf = function() {
-        context.beginPath();
-        context.arc(normalPos.x(), normalPos.y(), 4, 0, 2.0 * Math.PI, true);
-        context.fillStyle = "FFFF00"; // yellow
-        context.fill();
-        context.closePath();
-        context.beginPath();
-        context.arc(seekPos.x(), seekPos.y(), 4, 0, 2.0 * Math.PI, true);
-        context.fillStyle = "999966";  // grey
-        context.fill();
         context.closePath();
     }
     var drawMousePos = function() {
