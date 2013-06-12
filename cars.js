@@ -29,6 +29,15 @@ function start() {
         new Segment($V([50, 450]), $V([150, 550]), $V([100, -100]).toUnitVector()),
         new Segment($V([150, 550]), $V([250, 600]), $V([50, -100]).toUnitVector())
 
+    ], [
+        new Wall($V([250, 200]), $V([950, 200]), $V([0, -1])),
+        new Wall($V([950, 200]), $V([1000, 250]), $V([50, -50]).toUnitVector()),
+        new Wall($V([1000, 250]), $V([1000, 350]), $V([1, 0])),
+        new Wall($V([1000, 350]), $V([950, 400]), $V([50, 50]).toUnitVector()),
+        new Wall($V([950, 400]), $V([250, 400]), $V([0, 1])),
+        new Wall($V([250, 400]), $V([200, 350]), $V([-50, 50]).toUnitVector()),
+        new Wall($V([200, 350]), $V([200, 250]), $V([-1, 0])),
+        new Wall($V([200, 250]), $V([250, 200]), $V([-50, -50]).toUnitVector())
     ], 20);
     var player = new PlayerCar(60, 220, track);
     var cpu = new Car(260, 500, track);
@@ -77,7 +86,6 @@ function update() {
     if (!paused) {
         var step = new Date();
         var delta = (step - lastRun) / 1000;
-        //console.log(delta);
         //if (delta >= UPDATE_DELAY) {
             lastRun = step;
             track.update(delta);
@@ -85,6 +93,21 @@ function update() {
         renderer.render();
     }
     requestAnimationFrame(update);
+}
+
+function Wall(startPos, endPos, norm) {
+
+    this.start = function() {
+        return startPos.dup();
+    }
+
+    this.end = function() {
+        return endPos.dup();
+    }
+
+    this.normal = function() {
+        return norm.dup();
+    }
 }
 
 function Segment(startPos, endPos, norm) {
@@ -126,19 +149,17 @@ function Segment(startPos, endPos, norm) {
 
     this.normal = function(pos, heading) {
         var target = vectorTo(pos);
-        console.log("Start = " + startPos.inspect() + "Dir = " + dir.inspect() + " Target = " + target.toUnitVector().inspect() + " Dot = " + dir.dot(target.toUnitVector()));
         if (dir.dot(target.toUnitVector() < 0) || dir.dot(heading) < 0) {
             return null;
         }
         var targetAngle = this.angleTo(target);
         var lengthToNormal = target.modulus() * Math.cos(targetAngle);
-        console.log("lengthToNormal = " + lengthToNormal + " len = " + len);
         return (lengthToNormal > len) ? null : this.normalAtLength(lengthToNormal);
     }
 
 }
 
-function Track(segments, radius) {
+function Track(segments, innerWalls, radius) {
     var cars = [];
     var calculateNormal = function() {
         track.forEach (function(segment, segmentNo, radius) {
@@ -146,7 +167,6 @@ function Track(segments, radius) {
             var targetAngle = segment.angleTo(target);
             var lengthToNormal = target.modulus() * Math.cos(targetAngle);
             if (lengthToNormal <= segment.length()) {
-                //console.log("Segment Length = " + segment.length + ", Normal Length =  " + lengthToNormal + ", Segment = " + segmentNo);
                 tracker.normalPos = segment.normalAtLength(lengthToNormal);
                 tracker.currentSegment = segment;
                 tracker.segmentNo = segmentNo;
@@ -171,6 +191,12 @@ function Track(segments, radius) {
         for (var i = 0; i < segments.length; i++) {
             fn(segments[i], i + 1, radius);
         }
+    }
+
+    this.walls = function(fn) {
+        innerWalls.forEach(function(wall) {
+            fn(wall);
+        });
     }
 
 }
@@ -216,8 +242,6 @@ function PlayerCar(x, y, track) {
             var drag = calculateDrag();
             velocity = velocity.add(drag);
             loc = loc.add(velocity);
-            //console.log("force=" + force.inspect() + " acceleration=" + acceleration.inspect() + " drag=" + drag +
-            //    " velocity=" + velocity.inspect() + " location=" + loc.inspect());
         },
 
         currentAngle: function() {
@@ -334,6 +358,34 @@ function Renderer(track, cars) {
         context.restore();
     }
     var drawTrack = function() {
+        context.save();
+        context.beginPath();
+        context.lineWidth = 2;
+        context.moveTo(250, 2);
+        context.lineTo(950, 2);
+        context.arc(950, 250, 248, 4.71, 0, false);
+        context.lineTo(1198, 350);
+        context.arc(950, 350, 248, 0, 1.57, false);
+        context.lineTo(250, 598);
+        context.arc(250, 350, 248, 1.57, 3.14, false);
+        context.lineTo(2, 250);
+        context.arc(250, 250, 248, 3.14, 4.71, false);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(250, 200);
+        context.lineTo(950, 200);
+        context.arc(950, 250, 50, 4.71, 0, false);
+        context.lineTo(1000, 350);
+        context.arc(950, 350, 50, 0, 1.57, false);
+        context.lineTo(250, 400);
+        context.arc(250, 350, 50, 1.57, 3.14, false);
+        context.lineTo(200, 250);
+        context.arc(250, 250, 50, 3.14, 4.71, false);
+        context.stroke();
+        context.restore();
+    }
+    var drawTrack2 = function() {
         var drawCircleAt = function(x, y) {
             context.arc(x, y, 4, 0, 2.0 * Math.PI, true);
             context.fill();
@@ -403,6 +455,22 @@ function Renderer(track, cars) {
         context.lineWidth = 1.5;
         context.stroke();
         context.closePath();
+        context.moveTo(0, 0);
+        context.lineTo(30, 0);
+        context.moveTo(0, 0);
+        var leftFeeler = $V([Math.cos(5.5), Math.sin(5.5)]);
+        context.lineTo(leftFeeler.x() * 30, leftFeeler.y() * 30);
+        context.moveTo(0, 0);
+        leftFeeler = $V([Math.cos(0.79), Math.sin(0.79)]);
+        context.lineTo(leftFeeler.x() * 30, leftFeeler.y() * 30);
+        context.stroke();
+/*
+        context.rotate(0.79);
+        context.moveTo(0, 0);
+        context.lineTo(0, 10);
+        context.restore();
+*/
+
     }
     var drawMousePos = function() {
         context.beginPath();
@@ -423,5 +491,19 @@ function Renderer(track, cars) {
             }
         }
     }
+}
+
+function worldToLocal(worldPos, heading) {
+    var side = $V([-heading.y(), heading.x()]);
+    var x = worldPos.x() * heading.x() + worldPos.y() * heading.y();
+    var y = worldPos.x() * side.x() + worldPos.y() * side.y();
+    return $V([x, y]);
+}
+
+function localToWorld(localPos, heading) {
+    var side = $V([-heading.y(), heading.x()]);
+    var x = localPos.x() * heading.x() + localPos.y() * side.x();
+    var y = localPos.x() * heading.y() + localPos.y() * side.y();
+    return $V([x, y]);
 }
 
