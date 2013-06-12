@@ -41,8 +41,8 @@ function start() {
     ], 20);
     var player = new PlayerCar(60, 220, track);
     var cpu = new Car(260, 500, track);
-    //var cpu2 = new Car(360, 500, track);
-    renderer = new Renderer(track, [player, cpu]);
+    var cpu2 = new Car(260, 550, track, new Steering(track));
+    renderer = new Renderer(track, [player, cpu, cpu2]);
     mud = new Mud(-15, -15, 30);
     forward = false,
     left = false,
@@ -260,7 +260,7 @@ function PlayerCar(x, y, track) {
     return result;
 }
 
-function Car(x, y, track) {
+function Car(x, y, track, steering) {
     var loc = $V([x, y]);
     var velocity = $V([0, 0]);
     var mass = 10;
@@ -268,6 +268,9 @@ function Car(x, y, track) {
     var maxSpeed = 1;
     var normalPos = null;
     var seekPos = null;
+    if (steering) {
+        steering.wander();
+    }
     var calculateForce = function() {
         var closestNormal = Number.MAX_VALUE;
         var closestSegment = null;
@@ -304,7 +307,7 @@ function Car(x, y, track) {
 
     var result = {
         move: function(delta) {
-            var force = calculateForce();
+            var force = steering ? steering.calculate(this) : calculateForce();
             var acceleration = force.dividedBy(mass);
             velocity = velocity.add(acceleration);
             var drag = calculateDrag();
@@ -493,17 +496,37 @@ function Renderer(track, cars) {
     }
 }
 
-function worldToLocal(worldPos, heading) {
+function worldToLocal(worldPos, position, heading) {
+    var adjustedPos = worldPos.subtract(position);
     var side = $V([-heading.y(), heading.x()]);
-    var x = worldPos.x() * heading.x() + worldPos.y() * heading.y();
-    var y = worldPos.x() * side.x() + worldPos.y() * side.y();
+    var x = adjustedPos.x() * heading.x() + adjustedPos.y() * heading.y();
+    var y = adjustedPos.x() * side.x() + adjustedPos.y() * side.y();
     return $V([x, y]);
 }
 
-function localToWorld(localPos, heading) {
+function localToWorld(localPos, position, heading) {
     var side = $V([-heading.y(), heading.x()]);
     var x = localPos.x() * heading.x() + localPos.y() * side.x();
     var y = localPos.x() * heading.y() + localPos.y() * side.y();
-    return $V([x, y]);
+    return $V([x, y]).add(position);
 }
+
+Vector.prototype.dividedBy = function(n) {
+    return this.map(function(el, index) {
+        return el / n;
+    });
+}
+
+Vector.prototype.length = function() {
+    return this.modulus()
+}
+
+Vector.prototype.truncate = function(n) {
+    return this.modulus() > n ? this.toUnitVector().multiply(n) : this;
+}
+
+Vector.prototype.perp = function() {
+    return Vector.create([-this.y(), this.x()]);
+}
+
 
