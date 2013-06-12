@@ -3,31 +3,31 @@ function start() {
     UPDATE_DELAY = (1000 / CARS_FRAMES_PER_SECOND) / 1000;
     track = new Track([
         // Bottom Straight
-        new Segment($V([250, 550]), $V([600, 550]), $V([0, -1])),
-        new Segment($V([600, 550]), $V([950, 550]), $V([0, -1])),
+        new Segment($V([250, 600]), $V([600, 600]), $V([0, -1])),
+        new Segment($V([600, 600]), $V([950, 600]), $V([0, -1])),
         // Bottom Right Corner
-        new Segment($V([950, 550]), $V([1050, 500]), $V([-50, -100]).toUnitVector()),
-        new Segment($V([1050, 500]), $V([1100, 450]), $V([-50, -50]).toUnitVector()),
-        new Segment($V([1100, 450]), $V([1150, 350]), $V([-100, -50]).toUnitVector()),
+        new Segment($V([950, 600]), $V([1050, 550]), $V([-50, -100]).toUnitVector()),
+        new Segment($V([1050, 550]), $V([1150, 450]), $V([-100, -100]).toUnitVector()),
+        new Segment($V([1150, 450]), $V([1200, 350]), $V([-100, -50]).toUnitVector()),
         // Right Straight
-        new Segment($V([1150, 350]), $V([1150, 250]), $V([-1, 0])),
+        new Segment($V([1200, 350]), $V([1200, 250]), $V([-1, 0])),
         // Top Right Corner
-        new Segment($V([1150, 250]), $V([1100, 150]), $V([-100, 50]).toUnitVector()),
-        new Segment($V([1100, 150]), $V([1050, 100]), $V([-50, 50]).toUnitVector()),
-        new Segment($V([1050, 100]), $V([950, 50]), $V([-50, 100]).toUnitVector()),
+        new Segment($V([1200, 250]), $V([1150, 150]), $V([-100, 50]).toUnitVector()),
+        new Segment($V([1150, 150]), $V([1050, 50]), $V([-100, 100]).toUnitVector()),
+        new Segment($V([1050, 50]), $V([950, 0]), $V([-50, 100]).toUnitVector()),
         // Top Straight
-        new Segment($V([950, 50]), $V([600, 50]), $V([0, 1])),
-        new Segment($V([600, 50]), $V([250, 50]), $V([0, 1])),
+        new Segment($V([950, 0]), $V([600, 0]), $V([0, 1])),
+        new Segment($V([600, 0]), $V([250, 0]), $V([0, 1])),
         // Top Left Corner
-        new Segment($V([250, 50]), $V([150, 100]), $V([50, 100]).toUnitVector()),
-        new Segment($V([150, 100]), $V([100, 150]), $V([50, 50]).toUnitVector()),
-        new Segment($V([100, 150]), $V([50, 250]), $V([100, 50]).toUnitVector()),
+        new Segment($V([250, 0]), $V([150, 50]), $V([50, 100]).toUnitVector()),
+        new Segment($V([150, 50]), $V([50, 150]), $V([100, 100]).toUnitVector()),
+        new Segment($V([50, 150]), $V([0, 250]), $V([100, 50]).toUnitVector()),
         // Left Straight
-        new Segment($V([50, 250]), $V([50, 350]), $V([1, 0])),
+        new Segment($V([0, 250]), $V([0, 350]), $V([1, 0])),
         // Bottom Left Straight
-        new Segment($V([50, 350]), $V([100, 450]), $V([100, -50]).toUnitVector()),
-        new Segment($V([100, 450]), $V([150, 500]), $V([50, -50]).toUnitVector()),
-        new Segment($V([150, 500]), $V([250, 550]), $V([50, -100]).toUnitVector())
+        new Segment($V([0, 350]), $V([50, 450]), $V([100, -50]).toUnitVector()),
+        new Segment($V([50, 450]), $V([150, 550]), $V([100, -100]).toUnitVector()),
+        new Segment($V([150, 550]), $V([250, 600]), $V([50, -100]).toUnitVector())
 
     ], 20);
     var player = new PlayerCar(60, 220, track);
@@ -350,8 +350,9 @@ function Renderer(track, cars) {
             context.lineTo(endX, endY);
             context.stroke();
             drawCircleAt(endX, endY);
-            context.moveTo(startX, startY);
-            context.lineTo(startX + (segment.wallNormal().x() * 50), startY + (segment.wallNormal().y() * 50));
+            var midPoint = segment.start().add(segment.end()).dividedBy(2);
+            context.moveTo(midPoint.x(), midPoint.y());
+            context.lineTo(midPoint.x() + (segment.wallNormal().x() * 50), midPoint.y() + (segment.wallNormal().y() * 50));
             context.stroke();
             //context.rect(startX, startY - radius, endX - startX, radius * 2);
             //context.stroke();
