@@ -30,14 +30,14 @@ function start() {
         new Segment($V([150, 550]), $V([250, 600]), $V([50, -100]).toUnitVector())
 
     ], [
-        new Wall($V([250, 200]), $V([950, 200]), $V([0, -1])),
-        new Wall($V([950, 200]), $V([1000, 250]), $V([50, -50]).toUnitVector()),
-        new Wall($V([1000, 250]), $V([1000, 350]), $V([1, 0])),
-        new Wall($V([1000, 350]), $V([950, 400]), $V([50, 50]).toUnitVector()),
-        new Wall($V([950, 400]), $V([250, 400]), $V([0, 1])),
-        new Wall($V([250, 400]), $V([200, 350]), $V([-50, 50]).toUnitVector()),
-        new Wall($V([200, 350]), $V([200, 250]), $V([-1, 0])),
-        new Wall($V([200, 250]), $V([250, 200]), $V([-50, -50]).toUnitVector())
+        new Segment($V([250, 200]), $V([950, 200]), $V([0, -1])),
+        new Segment($V([950, 200]), $V([1000, 250]), $V([50, -50]).toUnitVector()),
+        new Segment($V([1000, 250]), $V([1000, 350]), $V([1, 0])),
+        new Segment($V([1000, 350]), $V([950, 400]), $V([50, 50]).toUnitVector()),
+        new Segment($V([950, 400]), $V([250, 400]), $V([0, 1])),
+        new Segment($V([250, 400]), $V([200, 350]), $V([-50, 50]).toUnitVector()),
+        new Segment($V([200, 350]), $V([200, 250]), $V([-1, 0])),
+        new Segment($V([200, 250]), $V([250, 200]), $V([-50, -50]).toUnitVector())
     ], 20);
     var player = new PlayerCar(60, 220, track);
     var cpu = new Car(260, 500, track);
@@ -95,7 +95,26 @@ function update() {
     requestAnimationFrame(update);
 }
 
-function Wall(startPos, endPos, norm) {
+function Segment(startPos, endPos, norm) {
+    var segmentVector = endPos.subtract(startPos);
+    var dir = segmentVector.toUnitVector();
+    var len = segmentVector.modulus();
+    var wallNorm = norm || $V([-dir.y(), dir.x()]);
+    var vectorTo = function(target) {
+        return target.subtract(startPos);
+    }
+
+    this.angleTo = function(target) {
+        return target.angleFrom(dir);
+    }
+
+    this.direction = function() {
+        return dir.dup();
+    }
+
+    this.length = function() {
+        return len;
+    }
 
     this.start = function() {
         return startPos.dup();
@@ -106,48 +125,14 @@ function Wall(startPos, endPos, norm) {
     }
 
     this.normal = function() {
-        return norm.dup();
-    }
-}
-
-function Segment(startPos, endPos, norm) {
-    var segmentVector = endPos.subtract(startPos);
-    var dir = segmentVector.toUnitVector();
-    var len = segmentVector.modulus();
-    var wallNorm = norm || $V([-dir.y(), dir.x()]);
-    var vectorTo = function(target) {
-        return target.subtract(startPos);
-    }
-
-    this.wallNormal = function() {
         return wallNorm.dup();
-    }
-
-    this.angleTo = function(target) {
-        return target.angleFrom(dir);
-    }
-
-    this.direction = function() {
-        return dir;
-    }
-
-    this.length = function() {
-        return len;
-    }
-
-    this.start = function() {
-        return startPos;
-    }
-
-    this.end = function() {
-        return endPos;
     }
 
     this.normalAtLength = function(normalLength) {
         return startPos.add(dir.multiply(normalLength));
     }
 
-    this.normal = function(pos, heading) {
+    this.positionInSegment = function(pos, heading) {
         var target = vectorTo(pos);
         if (dir.dot(target.toUnitVector() < 0) || dir.dot(heading) < 0) {
             return null;
@@ -160,6 +145,7 @@ function Segment(startPos, endPos, norm) {
 }
 
 function Track(segments, innerWalls, radius) {
+    innerWalls = innerWalls.concat(segments);
     var cars = [];
     var calculateNormal = function() {
         track.forEach (function(segment, segmentNo, radius) {
@@ -295,7 +281,7 @@ function Car(x, y, track, steering) {
         normalPos = null;
         track.forEach(function(segment, segmentNo, radius) {
             var futureLocation = loc.add(velocity.toUnitVector().multiply(30));
-            var pos = segment.normal(futureLocation, $V([Math.cos(angle), Math.sin(angle)]));
+            var pos = segment.positionInSegment(futureLocation, $V([Math.cos(angle), Math.sin(angle)]));
             segmentRadius = radius;
             if (pos) {
                 var distanceToNormal = pos.distanceFrom(futureLocation);
