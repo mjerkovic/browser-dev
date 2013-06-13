@@ -296,6 +296,10 @@ function Car(x, y, track, steering) {
         return seekPos.subtract(loc).toUnitVector().multiply(maxSpeed).subtract(velocity);
     }
 
+    var calculateSteeringForce = function(that) {
+        return steering.calculate(that).toUnitVector().multiply(maxSpeed).subtract(velocity);
+    }
+
     var calculateDrag = function() {
         var drag = Vector.Zero(2);
         if (mud.position.distanceFrom(loc) <= (mud.radius + 10)) {
@@ -307,7 +311,7 @@ function Car(x, y, track, steering) {
 
     var result = {
         move: function(delta) {
-            var force = steering ? steering.calculate(this) : calculateForce();
+            var force = steering ? calculateSteeringForce(this) : calculateForce();
             var acceleration = force.dividedBy(mass);
             velocity = velocity.add(acceleration);
             var drag = calculateDrag();
