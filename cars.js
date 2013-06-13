@@ -254,6 +254,22 @@ function PlayerCar(x, y, track) {
 
         render: function(context) {
 
+        },
+
+        createFeelers: function() {
+            var feelers = [];
+
+            feelers.push(this.position().add($V([Math.cos(angle), Math.sin(angle)]).multiply(30)));
+
+            var leftAngle = angle - 0.79;
+            var left = $V([Math.cos(leftAngle), Math.sin(leftAngle)]);
+            feelers.push(this.position().add(left.multiply(30)));
+
+            var rightAngle = angle + 0.79;
+            var right = $V([Math.cos(rightAngle), Math.sin(rightAngle)]);
+            feelers.push(this.position().add(right.multiply(30)));
+
+            return feelers;
         }
     };
     track.add(result);
@@ -269,7 +285,7 @@ function Car(x, y, track, steering) {
     var normalPos = null;
     var seekPos = null;
     if (steering) {
-        steering.wander();
+        steering.wander().wallAvoidance();
     }
     var calculateForce = function() {
         var closestNormal = Number.MAX_VALUE;
@@ -349,8 +365,25 @@ function Car(x, y, track, steering) {
                 context.fill();
                 context.restore();
             }
+        },
+
+        createFeelers: function() {
+            var feelers = [];
+
+            feelers.push(this.position().add($V([Math.cos(angle), Math.sin(angle)]).multiply(30)));
+
+            var leftAngle = angle - 0.79;
+            var left = $V([Math.cos(leftAngle), Math.sin(leftAngle)]);
+            feelers.push(this.position().add(left.multiply(30)));
+
+            var rightAngle = angle + 0.79;
+            var right = $V([Math.cos(rightAngle), Math.sin(rightAngle)]);
+            feelers.push(this.position().add(right.multiply(30)));
+
+            return feelers;
         }
     };
+
     track.add(result);
     return result;
 }

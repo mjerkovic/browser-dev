@@ -15,22 +15,25 @@ function Steering(track) {
 
     this.wander = function() {
         wanderOn = true;
+        return this;
     }
 
     this.wanderOff = function() {
-        this.wander = false;
+        wanderOn = false;
+        return this;
     }
 
     this.wallAvoidance = function() {
         wallAvoidanceOn = true;
+        return this;
     }
 
     this.wallAvoidanceOff = function() {
-        this.wallAvoidanceOn = false;
+        wallAvoidanceOn = false;
+        return this;
     }
 
-    var wallAvoidance = function(car, walls, feelers) {
-
+    var wallAvoidance = function(car) {
         var lineIntersects = function(position, feeler, from, to) {
             var AyCy = position.y() - from.y();
             var DxCx = to.x() - from.x();
@@ -55,7 +58,7 @@ function Steering(track) {
 
             if (r > 0 && r < 1 && s > 0 && s < 1) {
                 var point = feeler.subtract(position);
-                point = point.toUnitVector.multiply(r);
+                point = point.toUnitVector().multiply(r);
                 point = position.add(point);
                 return { distance: position.subtract(feeler).modulus() * r, intersectionPoint: point };
             }
@@ -68,11 +71,11 @@ function Steering(track) {
 
         var steeringForce = Vector.Zero(2);
         var closestPoint = Vector.Zero(2);
+        var feelers = car.createFeelers();
 
         for (var flr = 0; flr < feelers.length; flr++) {
-            for (var i = 0; i < walls.length; i++) {
-                var wall = walls[i];
-                var intersection = lineIntersects(car.position(), feelers[flr], wall.from(), wall.to());
+            track.walls(function(wall) {
+                var intersection = lineIntersects(car.position(), feelers[flr], wall.start(), wall.end());
                 if (intersection) {
                     if (intersection.distance < distanceToClosestIP) {
                         distanceToClosestIP = intersection.distance;
@@ -80,10 +83,10 @@ function Steering(track) {
                         closestPoint = intersection.intersectionPoint;
                     }
                 }
-            }
+            });
             if (closestWall) {
                 var overShoot = feelers[flr].subtract(closestPoint);
-                steeringForce = closestWall.toUnitVector().multiply(overShoot.modulus());
+                steeringForce = closestWall.normal().toUnitVector().multiply(overShoot.modulus());
             }
         }
         return steeringForce;
