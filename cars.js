@@ -197,7 +197,7 @@ function PlayerCar(x, y, track, steering) {
     var velocity = $V([0, 0]);
     var mass = 10;
     var angle = 0;
-    var maxSpeed = 1;
+    var maxSpeed = 2;
     if (steering) {
         steering.wallAvoidance();
     }
@@ -273,7 +273,7 @@ function Car(x, y, track, steering) {
     var velocity = $V([0, 0]);
     var mass = 10;
     var angle = 0;
-    var maxSpeed = 1;
+    var maxSpeed = 2;
     var normalPos = null;
     var seekPos = null;
     if (steering) {
