@@ -479,13 +479,14 @@ function Renderer(track, cars) {
         context.rotate(car.currentAngle());
         context.beginPath();
         triangle();
-        context.fillStyle = "00FFFF";
+/*        context.fillStyle = "00FFFF";
         context.fill();
         triangle();
         context.strokeStyle = "black";
         context.lineWidth = 1.5;
         context.stroke();
-        context.closePath();
+        context.closePath();*/
+        drawF1();
         context.moveTo(0, 0);
         context.lineTo(30, 0);
         context.moveTo(0, 0);
@@ -510,6 +511,33 @@ function Renderer(track, cars) {
         context.fillText(tracker.segmentNo, tracker.mousePos.x(), tracker.mousePos.y() - 10);
         context.fill();
         context.closePath();
+    }
+    var drawF1 = function() {
+        //context.save();
+        //context.translate(600, 100);
+        context.beginPath();
+        context.moveTo(-10, -10);
+        context.lineTo(-10, 10);
+        context.moveTo(30, -9);
+        context.lineTo(30, 9);
+        context.stroke();
+        context.fillStyle = 'blue';
+        // Chassis
+        context.fillRect(-15, -8, 30, 16);
+        //context.fillRect();
+        // Nose cone
+        context.fillRect(15, -4, 20, 8);
+        context.fill();
+        context.fillStyle = 'black';
+        // LR
+        context.fillRect(-15, -16, 10, 6);
+        // RR
+        context.fillRect(-15, 10, 10, 6);
+        // LF
+        context.fillRect(25, -13, 10, 4);
+        //RF
+        context.fillRect(25, 9, 10, 4);
+        //context.restore();
     }
     return {
         render: function() {
