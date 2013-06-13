@@ -39,7 +39,7 @@ function start() {
         new Segment($V([200, 350]), $V([200, 250]), $V([-1, 0])),
         new Segment($V([200, 250]), $V([250, 200]), $V([-50, -50]).toUnitVector())
     ], 20);
-    var player = new PlayerCar(60, 220, track);
+    var player = new PlayerCar(60, 220, track, new Steering(track));
     var cpu = new Car(260, 500, track);
     var cpu2 = new Car(260, 550, track, new Steering(track));
     renderer = new Renderer(track, [player, cpu, cpu2]);
@@ -192,19 +192,25 @@ function Mud(x, y, r) {
     this.radius = r
 }
 
-function PlayerCar(x, y, track) {
+function PlayerCar(x, y, track, steering) {
     var loc = $V([x, y]);
     var velocity = $V([0, 0]);
     var mass = 10;
     var angle = 0;
     var maxSpeed = 1;
+    if (steering) {
+        steering.wallAvoidance();
+    }
 
-    var calculateForce = function() {
+    var calculateForce = function(that) {
         var force = Vector.Zero(2);
         if (left) angle -= 0.04;
         if (right) angle += 0.04;
         if (forward) {
             force = force.add($V([Math.cos(angle), Math.sin(angle)]).multiply(maxSpeed));
+            if (steering) {
+                force = force.add(steering.calculate(that).toUnitVector().multiply(maxSpeed));
+            }
             return force.subtract(velocity);
         } else {
             return velocity.toUnitVector().multiply(-1); // * maxSpeed).subtract(velocity);
@@ -222,7 +228,7 @@ function PlayerCar(x, y, track) {
 
     var result = {
         move: function(delta) {
-            var force = calculateForce();
+            var force = calculateForce(this);
             var acceleration = force.dividedBy(mass);
             velocity = velocity.add(acceleration);
             var drag = calculateDrag();
@@ -467,7 +473,6 @@ function Renderer(track, cars) {
             context.moveTo(10, 0);
             context.lineTo(-10, -5);
             context.lineTo(-10, 5);
-            context.lineTo(10, 0);
         }
 
         context.translate(car.position().x(), car.position().y());
